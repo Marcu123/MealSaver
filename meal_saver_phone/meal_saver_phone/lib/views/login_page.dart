@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:meal_saver_phone/services/api_service.dart';
 import 'package:meal_saver_phone/views/forgot_password.dart';
+import 'package:meal_saver_phone/views/landing_page.dart';
 import 'package:meal_saver_phone/views/register_page.dart';
 import '../widgets/input_field.dart';
 import '../widgets/custom_button1.dart';
@@ -12,8 +14,39 @@ class LoginPage extends StatefulWidget {
 }
 
 class LoginPageState extends State<LoginPage> {
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final ApiService apiService = ApiService();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  Future<void> login() async {
+    try {
+      final responseMessage = await apiService.loginUser(
+        username: usernameController.text,
+        password: passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(responseMessage)));
+
+      if (responseMessage == "Login successful!") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LandingPage()),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll("Exception:", "").trim()),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +75,7 @@ class LoginPageState extends State<LoginPage> {
               const SizedBox(height: 35),
 
               InputField(
-                controller: _usernameController,
+                controller: usernameController,
                 labelText: 'Enter your username',
                 isPassword: false,
               ),
@@ -50,7 +83,7 @@ class LoginPageState extends State<LoginPage> {
               const SizedBox(height: 15),
 
               InputField(
-                controller: _passwordController,
+                controller: passwordController,
                 labelText: 'Enter your password',
                 isPassword: true,
               ),
@@ -88,8 +121,7 @@ class LoginPageState extends State<LoginPage> {
               CustomButton1(
                 text: 'Login',
                 onPressed: () {
-                  final username = _usernameController.text;
-                  final password = _passwordController.text;
+                  login();
                 },
               ),
 

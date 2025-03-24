@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:meal_saver_phone/services/api_service.dart';
 import 'package:meal_saver_phone/views/login_page.dart';
 import 'package:meal_saver_phone/widgets/image_picker_widget.dart';
 import '../widgets/input_field.dart';
@@ -14,11 +15,45 @@ class RegisterPage extends StatefulWidget {
 }
 
 class RegisterPageState extends State<RegisterPage> {
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final ApiService apiService = ApiService();
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  Future<void> register() async {
+    try {
+      final responseMessage = await apiService.registerUser(
+        firstName: firstNameController.text,
+        lastName: lastNameController.text,
+        email: emailController.text,
+        username: usernameController.text,
+        password: passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(responseMessage)));
+
+      if (responseMessage == "Registration successful!") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll("Exception:", "").trim()),
+        ),
+      );
+    }
+  }
 
   File? userImage;
 
@@ -61,7 +96,7 @@ class RegisterPageState extends State<RegisterPage> {
                 children: [
                   Expanded(
                     child: InputField(
-                      controller: _firstNameController,
+                      controller: firstNameController,
                       labelText: 'First Name',
                       isPassword: false,
                     ),
@@ -69,7 +104,7 @@ class RegisterPageState extends State<RegisterPage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: InputField(
-                      controller: _lastNameController,
+                      controller: lastNameController,
                       labelText: 'Last Name',
                       isPassword: false,
                     ),
@@ -80,7 +115,7 @@ class RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 15),
 
               InputField(
-                controller: _usernameController,
+                controller: usernameController,
                 labelText: 'Username',
                 isPassword: false,
               ),
@@ -88,7 +123,7 @@ class RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 15),
 
               InputField(
-                controller: _emailController,
+                controller: emailController,
                 labelText: 'Email',
                 isPassword: false,
               ),
@@ -96,7 +131,7 @@ class RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 15),
 
               InputField(
-                controller: _passwordController,
+                controller: passwordController,
                 labelText: 'Password',
                 isPassword: true,
               ),
@@ -108,8 +143,7 @@ class RegisterPageState extends State<RegisterPage> {
               CustomButton1(
                 text: 'Register',
                 onPressed: () {
-                  final username = _usernameController.text;
-                  final password = _passwordController.text;
+                  register();
                 },
               ),
 

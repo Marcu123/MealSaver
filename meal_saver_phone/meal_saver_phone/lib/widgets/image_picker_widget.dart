@@ -16,7 +16,6 @@ class ImagePickerWidgetState extends State<ImagePickerWidget> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
-  // ✅ Funcție pentru a selecta și decupa o imagine în formă de cerc
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
@@ -32,22 +31,18 @@ class ImagePickerWidgetState extends State<ImagePickerWidget> {
     }
   }
 
-  // ✅ Funcție pentru crop rotund
   Future<File?> _cropImage(File imageFile) async {
     CroppedFile? croppedFile = await ImageCropper().cropImage(
       sourcePath: imageFile.path,
-      aspectRatio: CropAspectRatio(
-        ratioX: 1.0,
-        ratioY: 1.0,
-      ), // Păstrăm aspectul pătrat înainte de rotunjire
+      aspectRatio: CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Crop Image',
           toolbarColor: Colors.deepPurple,
+          cropStyle: CropStyle.circle,
           toolbarWidgetColor: Colors.white,
           activeControlsWidgetColor: Colors.deepPurple,
-          lockAspectRatio:
-              true, // ✅ Menținem aspectul pătrat pentru crop rotund
+          lockAspectRatio: true,
         ),
         IOSUiSettings(
           title: 'Crop Image',
@@ -74,7 +69,6 @@ class ImagePickerWidgetState extends State<ImagePickerWidget> {
                     height: 150,
                   )
                   : ClipOval(
-                    // ✅ Face imaginea crop-uită rotundă
                     child: Image.file(
                       _selectedImage!,
                       width: 150,
