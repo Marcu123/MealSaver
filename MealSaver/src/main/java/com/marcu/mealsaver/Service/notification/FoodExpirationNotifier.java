@@ -27,8 +27,7 @@ public class FoodExpirationNotifier {
 
         for (Food food : expired) {
             String username = food.getUser().getUsername();
-            System.out.println("Trimit notificare pentru: " + food.getUser().getUsername() + " pentru alimentul: " + food.getName());
-            messagingTemplate.convertAndSendToUser(username, "/queue/expired", "⚠️ " + food.getName() + " expired!");
+            messagingTemplate.convertAndSendToUser(username, "/queue/expired", food.getName() + " expired!");
         }
 
 
