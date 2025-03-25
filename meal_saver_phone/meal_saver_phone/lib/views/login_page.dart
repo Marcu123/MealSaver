@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:meal_saver_phone/services/api_service.dart';
+import 'package:meal_saver_phone/services/stomp_service.dart';
 import 'package:meal_saver_phone/views/forgot_password.dart';
+import 'package:meal_saver_phone/views/home_page.dart';
 import 'package:meal_saver_phone/views/landing_page.dart';
 import 'package:meal_saver_phone/views/register_page.dart';
 import '../widgets/input_field.dart';
 import '../widgets/custom_button1.dart';
+
+final StompService stompService = StompService();
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -32,9 +36,10 @@ class LoginPageState extends State<LoginPage> {
       ).showSnackBar(SnackBar(content: Text(responseMessage)));
 
       if (responseMessage == "Login successful!") {
+        await stompService.connect();
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const LandingPage()),
+          MaterialPageRoute(builder: (context) => const HomePage()),
         );
       }
     } catch (e) {
