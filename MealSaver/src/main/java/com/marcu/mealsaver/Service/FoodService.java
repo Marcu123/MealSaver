@@ -57,4 +57,9 @@ public class FoodService {
         Food food = foodRepository.findByName(name).orElseThrow(() -> new RuntimeException("Food not found"));
         return foodMapper.toDTO(food);
     }
+
+    public Iterable<FoodDTO> getMyFoods(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        return foodMapper.toDTOs(foodRepository.findAllByUser(user));
+    }
 }

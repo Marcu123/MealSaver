@@ -21,16 +21,37 @@ public class FoodExpirationNotifier {
 
     @Scheduled(fixedRate = 60000)
     public void checkExpiringFoods() {
-        List<Food> expired = foodRepository.findAll().stream()
-                .filter(f -> f.getExpirationDate().before(new Date()))
-                .toList();
+        Date now = new Date();
+        List<Food> allFoods = foodRepository.findAll();
 
-        for (Food food : expired) {
+        for (Food food : allFoods) {
             String username = food.getUser().getUsername();
-            messagingTemplate.convertAndSendToUser(username, "/queue/expired", food.getName() + " expired!");
+            Date expiration = food.getExpirationDate();
+
+            long millisDiff = expiration.getTime() - now.getTime();
+            long daysLeft = millisDiff / (1000 * 60 * 60 * 24);
+
+            if (expiration.before(now)) {
+                messagingTemplate.convertAndSendToUser(
+                        username, "/queue/expired",
+                        "⚠️ " + food.getName() + " is expired!"
+                );
+            } else if (daysLeft <= 3) {
+                String message;
+                if (daysLeft == 0) {
+                    message = "⏳ " + food.getName() + " expires today!";
+                } else if (daysLeft == 1) {
+                    message = "⏳ " + food.getName() + " expires tomorrow!";
+                } else {
+                    message = "⏳ " + food.getName() + " expires in " + daysLeft + " days!";
+                }
+
+                messagingTemplate.convertAndSendToUser(
+                        username, "/queue/expiring", message
+                );
+            }
         }
-
-
     }
+
 
 }

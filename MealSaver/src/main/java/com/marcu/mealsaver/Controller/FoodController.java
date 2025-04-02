@@ -3,13 +3,19 @@ package com.marcu.mealsaver.Controller;
 import com.marcu.mealsaver.Dto.FoodDTO;
 import com.marcu.mealsaver.Dto.UserDTO;
 import com.marcu.mealsaver.Service.FoodService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/foods")
+@SecurityRequirement(name = "bearerAuth")
 public class FoodController {
 
     private final FoodService foodService;
@@ -40,9 +46,21 @@ public class FoodController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/my")
+    public ResponseEntity<Iterable<FoodDTO>> getMyFoods(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(foodService.getMyFoods(userDetails.getUsername()));
+    }
     @DeleteMapping("/{foodId}")
     public ResponseEntity<FoodDTO> deleteFood(@PathVariable Long foodId) {
         foodService.deleteFood(foodId);
         return ResponseEntity.noContent().build();
     }
+
+//    @GetMapping("/expiring-soon")
+//    public List<FoodDTO> getExpiringSoon(@AuthenticationPrincipal UserDetails user) {
+//        return foodService.findExpiringSoon(user.getUsername());
+//    }
+
+
+
 }
