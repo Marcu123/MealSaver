@@ -1,6 +1,7 @@
 package com.marcu.mealsaver.Mapper;
 
 import com.marcu.mealsaver.Dto.FoodDTO;
+import com.marcu.mealsaver.Exception.UserNotFoundException;
 import com.marcu.mealsaver.Model.Food;
 import com.marcu.mealsaver.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ public class FoodMapper {
         food.setSize(foodDTO.getSize());
         food.setExpirationDate(foodDTO.getExpirationDate());
         food.setUser(userRepository.findByUsername(foodDTO.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found")));
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + foodDTO.getUsername())));
 
         return food;
     }

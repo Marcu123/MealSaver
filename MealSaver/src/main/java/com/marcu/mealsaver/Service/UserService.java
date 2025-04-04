@@ -3,6 +3,9 @@ package com.marcu.mealsaver.Service;
 import com.marcu.mealsaver.Dto.LoginRequestDTO;
 import com.marcu.mealsaver.Dto.LoginResponseDTO;
 import com.marcu.mealsaver.Dto.UserDTO;
+import com.marcu.mealsaver.Exception.EmailAlreadyExistsException;
+import com.marcu.mealsaver.Exception.UserNotFoundException;
+import com.marcu.mealsaver.Exception.UsernameAlreadyExistsException;
 import com.marcu.mealsaver.Mapper.UserMapper;
 import com.marcu.mealsaver.Model.User;
 import com.marcu.mealsaver.Repository.UserRepository;
@@ -33,19 +36,19 @@ public class UserService {
 
     public UserDTO getUserByUsername(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + username));
         return userMapper.toDTO(user);
     }
 
     public UserDTO registerUser(UserDTO userDTO) {
         userRepository.findByUsername(userDTO.getUsername())
                 .ifPresent(user -> {
-                    throw new RuntimeException("Username already exists");
+                    throw new UsernameAlreadyExistsException("Username already exists: " + userDTO.getUsername());
                 });
 
         userRepository.findByEmail(userDTO.getEmail())
                 .ifPresent(user -> {
-                    throw new RuntimeException("Email already exists");
+                    throw new EmailAlreadyExistsException("Email already exists: " + userDTO.getEmail());
                 });
         User user = userMapper.toEntity(userDTO);
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
@@ -55,13 +58,13 @@ public class UserService {
 
     public void deleteUser(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + username));
         userRepository.delete(user);
     }
 
     public void updateUser(String username, UserDTO userDTO) {
         userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + username));
 
         User user = userMapper.toEntity(userDTO);
         userRepository.save(user);
@@ -73,7 +76,7 @@ public class UserService {
         );
 
         User user = userRepository.findByUsername(loginRequestDTO.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + loginRequestDTO.getUsername()));
 
         String token = jwtUtil.generateToken(user.getUsername());
 

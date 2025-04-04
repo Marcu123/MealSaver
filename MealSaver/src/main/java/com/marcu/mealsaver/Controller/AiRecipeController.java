@@ -23,7 +23,7 @@ public class AiRecipeController {
         this.recipeGeneratorService = recipeGeneratorService;
     }
 
-    @GetMapping("/generate-personal-recipe")
+    @GetMapping("/recipes")
     public ResponseEntity<List<RecipeResponseDTO>> generatePersonalRecipe(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(recipeGeneratorService.generateRecipeForUser(userDetails.getUsername()));
     }

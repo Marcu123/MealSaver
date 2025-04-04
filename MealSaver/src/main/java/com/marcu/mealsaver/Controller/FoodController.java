@@ -25,7 +25,7 @@ public class FoodController {
         this.foodService = foodService;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<Iterable<FoodDTO>> getAllFoods() {
         return ResponseEntity.ok(foodService.getAllFoods());
     }
@@ -56,10 +56,15 @@ public class FoodController {
         return ResponseEntity.noContent().build();
     }
 
-//    @GetMapping("/expiring-soon")
-//    public List<FoodDTO> getExpiringSoon(@AuthenticationPrincipal UserDetails user) {
-//        return foodService.findExpiringSoon(user.getUsername());
-//    }
+    @GetMapping("/expiring-soon")
+    public List<FoodDTO> getExpiringSoon(@AuthenticationPrincipal UserDetails user) {
+        return foodService.getExpiringSoon(user.getUsername());
+    }
+
+    @GetMapping("/expired")
+    public List<FoodDTO> getExpired(@AuthenticationPrincipal UserDetails user) {
+        return foodService.getExpired(user.getUsername());
+    }
 
 
 

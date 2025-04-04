@@ -1,6 +1,7 @@
 package com.marcu.mealsaver.Service;
 
 import com.marcu.mealsaver.Dto.RecipeResponseDTO;
+import com.marcu.mealsaver.Exception.UserNotFoundException;
 import com.marcu.mealsaver.Model.Food;
 import com.marcu.mealsaver.Model.User;
 import com.marcu.mealsaver.Repository.FoodRepository;
@@ -32,7 +33,7 @@ public class RecipeGeneratorService {
 
     public List<RecipeResponseDTO> generateRecipeForUser(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + username));
 
         List<Food> allFoods = foodRepository.findAllByUser(user);
         Date now = new Date();
