@@ -52,5 +52,9 @@ public class User{
     @Nullable
     private List<Food> foods;
 
+    @Column(nullable = false)
+    private boolean enabled = false;
+
+
 
 }
