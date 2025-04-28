@@ -1,0 +1,11 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.meal_saver_phone",
+      "sha256_cert_fingerprints": [
+        "8C:D6:24:51:53:08:9B:A2:C8:EE:21:25:23:D0:25:32:35:E9:73:11:20:F3:DE:98:32:B2:42:2B:02:C7:E8:59"
+      ]
+    }
+  }]
+  

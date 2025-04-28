@@ -83,7 +83,7 @@ public class UserService {
 
         verificationTokenRepository.save(verificationToken);
 
-        String activationLink = "http://localhost:8082/api/auth/verify?token=" + token;
+        String activationLink = "https://b89e-84-117-163-94.ngrok-free.app/api/auth/verify?token=" + token;
         emailService.sendEmail(user.getEmail(), "Activate your MealSaver account",
                 "Welcome to MealSaver!\n\nClick the link below to activate your account:\n" + activationLink);
 
@@ -116,7 +116,7 @@ public class UserService {
 
         verificationTokenRepository.save(resetToken);
 
-        String resetLink = "http://localhost:8082/api/auth/reset-password?token=" + token;
+        String resetLink = "https://b89e-84-117-163-94.ngrok-free.app/api/auth/reset-password?token=" + token;
         emailService.sendEmail(email, "MealSaver - Reset your password",
                 "Click the link below to reset your password:\n" + resetLink);
     }
@@ -144,13 +144,19 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    public void updateUser(String username, UserDTO userDTO) {
-        userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + username));
+    public void updateUser(String currentUsername, UserDTO dto) {
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        User user = userMapper.toEntity(userDTO);
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setEmail(dto.getEmail());
+        user.setUsername(dto.getUsername());
+
         userRepository.save(user);
     }
+
+
 
     public LoginResponseDTO loginUser(LoginRequestDTO loginRequestDTO) {
         User user = userRepository.findByUsername(loginRequestDTO.getUsername())
@@ -166,6 +172,30 @@ public class UserService {
 
         String jwt = jwtUtil.generateToken(user.getUsername());
         return new LoginResponseDTO(jwt);
+    }
+
+    public void changePassword(String username, String oldPassword, String newPassword) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Old password is incorrect.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    public UserDTO getCurrentUserData(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        UserDTO dto = new UserDTO();
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        dto.setEmail(user.getEmail());
+        dto.setUsername(user.getUsername());
+        return dto;
     }
 
 }

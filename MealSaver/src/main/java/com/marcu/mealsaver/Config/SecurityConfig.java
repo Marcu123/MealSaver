@@ -28,8 +28,8 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**",  "/api/auth/ws/test",
-                                "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**","/ws/**").permitAll()
+                        .requestMatchers("/api/auth/**",  "/api/auth/ws/test","/.well-known/**","/api/recipes/**",
+                                "/images/**","/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**","/ws/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)

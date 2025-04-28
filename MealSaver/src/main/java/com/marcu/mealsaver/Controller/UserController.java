@@ -1,10 +1,13 @@
 package com.marcu.mealsaver.Controller;
 
+import com.marcu.mealsaver.Dto.PasswordDTO;
 import com.marcu.mealsaver.Dto.UserDTO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import com.marcu.mealsaver.Service.UserService;
@@ -26,16 +29,43 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserByUsername(username));
     }
 
-    @PutMapping("/{username}")
-    public ResponseEntity<Void> updateUser(@PathVariable String username, @Valid @RequestBody UserDTO userDTO) {
-        userService.updateUser(username, userDTO);
+    @PutMapping("/update-profile")
+    public ResponseEntity<Void> updateProfile(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody UserDTO userDTO
+    ) {
+        userService.updateUser(userDetails.getUsername(), userDTO);
         return ResponseEntity.noContent().build();
     }
+
+
 
     @DeleteMapping("/{username}")
     public ResponseEntity<Void> deleteUser(@PathVariable String username) {
         userService.deleteUser(username);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<String> changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody PasswordDTO passwordDTO
+    ) {
+        userService.changePassword(
+                userDetails.getUsername(),
+                passwordDTO.getOldPassword(),
+                passwordDTO.getNewPassword()
+        );
+        return ResponseEntity.ok("Password changed successfully.");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        UserDTO userDTO = userService.getCurrentUserData(userDetails.getUsername());
+        return ResponseEntity.ok(userDTO);
+    }
+
+
+
 }
 
