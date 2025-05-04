@@ -55,6 +55,7 @@ public class User{
     @Column(nullable = false)
     private boolean enabled = false;
 
-
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
 
 }

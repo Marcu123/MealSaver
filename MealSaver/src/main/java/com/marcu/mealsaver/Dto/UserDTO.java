@@ -40,6 +40,6 @@ public class UserDTO {
 
     private List<FoodDTO> foods;
 
+    private String profileImageUrl;
+
 }
-
-

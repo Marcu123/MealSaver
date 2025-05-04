@@ -12,8 +12,7 @@ import com.marcu.mealsaver.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
+import java.util.*;
 
 @Service
 public class FoodService {
@@ -44,13 +43,16 @@ public class FoodService {
     }
 
     public void updateFood(String name, FoodDTO foodDTO) {
-        foodRepository.findByName(name).orElseThrow(() -> new FoodNotFoundException("Food not found: " + name));
+        foodRepository.findByName(name)
+                .orElseThrow(() -> new FoodNotFoundException("Food not found: " + name));
+
         Food food = foodMapper.toEntity(foodDTO);
         foodRepository.save(food);
     }
 
     public void deleteFood(Long foodId) {
-        Food food = foodRepository.findById(foodId).orElseThrow(() -> new FoodNotFoundException("The id of the food not found: " + foodId));
+        Food food = foodRepository.findById(foodId)
+                .orElseThrow(() -> new FoodNotFoundException("The id of the food not found: " + foodId));
         foodRepository.delete(food);
     }
 
@@ -59,34 +61,55 @@ public class FoodService {
     }
 
     public FoodDTO getFoodByName(String name) {
-        Food food = foodRepository.findByName(name).orElseThrow(() -> new FoodNotFoundException("Food not found: " + name));
+        Food food = foodRepository.findByName(name)
+                .orElseThrow(() -> new FoodNotFoundException("Food not found: " + name));
         return foodMapper.toDTO(food);
     }
 
     public Iterable<FoodDTO> getMyFoods(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User not found: " + username));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + username));
         return foodMapper.toDTOs(foodRepository.findAllByUser(user));
     }
 
-    public List<FoodDTO> getExpiringSoon(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User not found: " + username));
+    public List<FoodDTO> getExpired(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + username));
+
         List<Food> allFoods = foodRepository.findAllByUser(user);
-        long now = System.currentTimeMillis();
+        Date today = truncateToDay(new Date());
 
         return allFoods.stream()
-                .filter(f -> (f.getExpirationDate().getTime() - now) <= 3L * 24 * 60 * 60 * 1000)
+                .filter(f -> truncateToDay(f.getExpirationDate()).before(today))
                 .map(foodMapper::toDTO)
                 .toList();
     }
 
-    public List<FoodDTO> getExpired(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User not found: " + username));
+    public List<FoodDTO> getExpiringSoon(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + username));
+
         List<Food> allFoods = foodRepository.findAllByUser(user);
-        long now = System.currentTimeMillis();
+        Date today = truncateToDay(new Date());
 
         return allFoods.stream()
-                .filter(f -> f.getExpirationDate().getTime() < now)
+                .filter(f -> {
+                    Date expDate = truncateToDay(f.getExpirationDate());
+                    long diff = expDate.getTime() - today.getTime();
+                    long daysLeft = diff / (1000 * 60 * 60 * 24);
+                    return daysLeft >= 0 && daysLeft <= 3;
+                })
                 .map(foodMapper::toDTO)
                 .toList();
+    }
+
+    private Date truncateToDay(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
     }
 }

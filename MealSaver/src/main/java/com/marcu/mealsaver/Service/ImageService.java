@@ -16,7 +16,8 @@ public class ImageService {
     private final Path imageDirectory = Paths.get("src/main/resources/static/images");
 
     public Resource loadImageAsResource(String imageName) throws IOException {
-        Path imagePath = imageDirectory.resolve(imageName).normalize();
+        Path imagePath = imageDirectory.resolve(imageName + ".jpg").normalize();
+        System.out.println("Image path: " + imagePath);
         if (!Files.exists(imagePath)) {
             throw new IOException("Image not found: " + imageName);
         }

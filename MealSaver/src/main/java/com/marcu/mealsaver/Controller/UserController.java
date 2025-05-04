@@ -12,6 +12,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import com.marcu.mealsaver.Service.UserService;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/users")
 @Validated
@@ -64,6 +66,22 @@ public class UserController {
         UserDTO userDTO = userService.getCurrentUserData(userDetails.getUsername());
         return ResponseEntity.ok(userDTO);
     }
+
+    @PutMapping("/upload-profile-image")
+    public ResponseEntity<Void> uploadImageByUsername(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        String url = request.get("url");
+
+        if (username == null || url == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        userService.updateUserPhoto(username, url);
+
+        return ResponseEntity.noContent().build();
+    }
+
+
 
 
 

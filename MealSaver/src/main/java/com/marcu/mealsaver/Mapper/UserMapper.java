@@ -18,7 +18,7 @@ public class UserMapper {
         this.foodMapper = foodMapper;
     }
 
-   public UserDTO toDTO(User user){
+    public UserDTO toDTO(User user){
         UserDTO userDTO = new UserDTO();
         userDTO.setId(user.getId());
         userDTO.setFirstName(user.getFirstName());
@@ -28,6 +28,7 @@ public class UserMapper {
         userDTO.setPassword(user.getPassword());
         userDTO.setCreatedAt(user.getCreatedAt());
         userDTO.setUpdatedAt(user.getUpdatedAt());
+        userDTO.setProfileImageUrl(user.getProfileImageUrl());
         userDTO.setFoods(user.getFoods() != null ? user.getFoods().stream()
                 .map(foodMapper::toDTO)
                 .collect(Collectors.toList())
@@ -45,6 +46,7 @@ public class UserMapper {
         user.setPassword(userDTO.getPassword());
         user.setCreatedAt(userDTO.getCreatedAt());
         user.setUpdatedAt(userDTO.getUpdatedAt());
+        user.setProfileImageUrl(userDTO.getProfileImageUrl());
         user.setFoods(userDTO.getFoods() != null ? userDTO.getFoods().stream()
                 .map(foodMapper::toEntity)
                 .collect(Collectors.toList())

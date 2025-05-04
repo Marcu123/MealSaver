@@ -10,6 +10,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -20,18 +21,21 @@ public class RecipeGeneratorService {
     private final UserRepository userRepository;
     private final OpenAiServiceWrapper aiService;
     private final GoogleImageService imageService;
+    private final RecipeService recipeService;
 
     public RecipeGeneratorService(FoodRepository foodRepository,
                                   UserRepository userRepository,
                                   OpenAiServiceWrapper aiService,
-                                  GoogleImageService imageService) {
+                                  GoogleImageService imageService,
+                                  RecipeService recipeService) {
         this.foodRepository = foodRepository;
         this.userRepository = userRepository;
         this.aiService = aiService;
         this.imageService = imageService;
+        this.recipeService = recipeService;
     }
 
-    public List<RecipeResponseDTO> generateRecipeForUser(String username) {
+    public List<RecipeResponseDTO> generateRecipeForUser(String username, int page, int size) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found: " + username));
 
@@ -48,9 +52,30 @@ public class RecipeGeneratorService {
                 .map(Food::getName)
                 .toList();
 
-        String prompt = buildPrompt(expiringFoods, otherFoods);
-        JSONArray recipesArray = aiService.generateJsonArrayResponse(prompt);
+        if (expiringFoods.isEmpty() && otherFoods.isEmpty()) {
+            System.out.println("No foods. Returning recipes from CSV dataset, page: " + page);
+            return recipeService.getRecipes(Collections.emptyList(), Collections.emptyList(), page, size)
+                    .stream()
+                    .map(r -> new RecipeResponseDTO(
+                            r.getTitle(),
+                            r.getCleanedIngredients(),
+                            List.of(r.getInstructions()),
+                            r.getCategories(),
+                            r.getImageName()
+                    ))
+                    .toList();
+        }
 
+        System.out.println("Generating AI recipes for page: " + page);
+
+        String prompt;
+        if (page == 0) {
+            prompt = buildPrompt(expiringFoods, otherFoods);
+        } else {
+            prompt = buildContinuationPrompt(expiringFoods, otherFoods, page);
+        }
+
+        JSONArray recipesArray = aiService.generateJsonArrayResponse(prompt);
 
         return recipesArray.toList().stream()
                 .map(obj -> {
@@ -67,6 +92,8 @@ public class RecipeGeneratorService {
                 })
                 .toList();
     }
+
+
 
     private String buildPrompt(List<String> expiring, List<String> other) {
         return """
@@ -87,5 +114,30 @@ public class RecipeGeneratorService {
                 ⚠️ Output only valid JSON (an array with 5 recipe objects). No explanations. No markdown. No text outside the array.
                 """.formatted(String.join(", ", expiring), String.join(", ", other));
     }
+
+    private String buildContinuationPrompt(List<String> expiring, List<String> other, int page) {
+        return """
+            You are a smart cooking assistant.
+            
+            Based on these ingredients:
+            - Expiring soon: %s
+            - Available: %s
+
+            Generate 5 MORE creative and completely new recipes, DIFFERENT from any previous ones.
+            Each recipe must follow STRICTLY this JSON format:
+
+            {
+              "title": "string",
+              "ingredients": ["ingredient1", "ingredient2", "..."],
+              "steps": ["Step 1...", "Step 2...", "..."],
+              "optionalIngredientsToBuy": ["optional1", "optional2", "..."]
+            }
+
+            ⚠️ Output only valid JSON (no explanations, no extra text).
+
+            This is continuation page %d.
+            """.formatted(String.join(", ", expiring), String.join(", ", other), page);
+    }
+
 
 }

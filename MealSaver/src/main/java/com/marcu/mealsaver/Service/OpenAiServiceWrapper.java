@@ -15,9 +15,16 @@ public class OpenAiServiceWrapper {
     private final OpenAIClient openAiClient;
 
     public OpenAiServiceWrapper() {
-        this.openAiClient = OpenAIOkHttpClient.fromEnv();
-    }
+        String apiKey = System.getenv("OPENAI_API_KEY");
 
+        if (apiKey == null || apiKey.isEmpty()) {
+            throw new IllegalStateException("OPENAI_API_KEY is not set in environment variables");
+        }
+
+        this.openAiClient = OpenAIOkHttpClient.builder()
+                .apiKey(apiKey)
+                .build();
+    }
 
     public JSONArray generateJsonArrayResponse(String prompt) {
         ChatCompletionCreateParams params = ChatCompletionCreateParams.builder()
@@ -32,6 +39,4 @@ public class OpenAiServiceWrapper {
 
         return new JSONArray(content);
     }
-
-
 }

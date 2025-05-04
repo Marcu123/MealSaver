@@ -13,6 +13,7 @@ import com.marcu.mealsaver.Repository.UserRepository;
 import com.marcu.mealsaver.Repository.VerificationTokenRepository;
 import com.marcu.mealsaver.Security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,6 +36,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final VerificationTokenRepository verificationTokenRepository;
     private final EmailService emailService;
+
+    @Value("${app.frontend.base-url}")
+    private String frontendBaseUrl;
 
 
     @Autowired
@@ -83,9 +87,11 @@ public class UserService {
 
         verificationTokenRepository.save(verificationToken);
 
-        String activationLink = "https://b89e-84-117-163-94.ngrok-free.app/api/auth/verify?token=" + token;
+        String activationLink = frontendBaseUrl + "/api/auth/verify?token=" + token;
         emailService.sendEmail(user.getEmail(), "Activate your MealSaver account",
                 "Welcome to MealSaver!\n\nClick the link below to activate your account:\n" + activationLink);
+
+        System.out.println("🚀 Activation link generated: " + activationLink);
 
     }
 
@@ -116,7 +122,7 @@ public class UserService {
 
         verificationTokenRepository.save(resetToken);
 
-        String resetLink = "https://b89e-84-117-163-94.ngrok-free.app/api/auth/reset-password?token=" + token;
+        String resetLink = frontendBaseUrl + "/api/auth/reset-password?token=" + token;
         emailService.sendEmail(email, "MealSaver - Reset your password",
                 "Click the link below to reset your password:\n" + resetLink);
     }
@@ -153,6 +159,18 @@ public class UserService {
         user.setEmail(dto.getEmail());
         user.setUsername(dto.getUsername());
 
+        if (dto.getProfileImageUrl() != null) {
+            user.setProfileImageUrl(dto.getProfileImageUrl());
+        }
+
+        userRepository.save(user);
+    }
+
+    public void updateUserPhoto(String username, String profileImageUrl) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        user.setProfileImageUrl(profileImageUrl);
         userRepository.save(user);
     }
 
@@ -195,8 +213,8 @@ public class UserService {
         dto.setLastName(user.getLastName());
         dto.setEmail(user.getEmail());
         dto.setUsername(user.getUsername());
+        dto.setProfileImageUrl(user.getProfileImageUrl());
         return dto;
     }
 
 }
-
