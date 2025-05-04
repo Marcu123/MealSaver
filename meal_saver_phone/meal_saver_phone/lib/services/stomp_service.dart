@@ -3,7 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'notification_service.dart';
 
 class StompService {
+  static final StompService _instance = StompService._internal();
+  factory StompService() => _instance;
+  StompService._internal();
+
   StompClient? _stompClient;
+  void Function()? onNotificationReceived;
 
   Future<void> connect() async {
     final prefs = await SharedPreferences.getInstance();
@@ -32,11 +37,24 @@ class StompService {
       destination: '/user/queue/expired',
       callback: (StompFrame frame) {
         if (frame.body != null) {
-          print('Notification: ${frame.body}');
           NotificationService.showNotification(
             title: 'Food is expired!',
             body: frame.body!,
           );
+          onNotificationReceived?.call();
+        }
+      },
+    );
+
+    _stompClient?.subscribe(
+      destination: '/user/queue/expiring',
+      callback: (StompFrame frame) {
+        if (frame.body != null) {
+          NotificationService.showNotification(
+            title: 'Food is expiring soon!',
+            body: frame.body!,
+          );
+          onNotificationReceived?.call();
         }
       },
     );

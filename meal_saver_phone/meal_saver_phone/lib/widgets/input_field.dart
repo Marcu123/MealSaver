@@ -4,20 +4,23 @@ class InputField extends StatelessWidget {
   final TextEditingController controller;
   final String labelText;
   final bool isPassword;
+  final String? Function(String?)? validator;
 
   const InputField({
     super.key,
     required this.controller,
     required this.labelText,
     this.isPassword = false,
+    this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       obscureText: isPassword,
       style: const TextStyle(color: Colors.white),
+      validator: validator,
       decoration: InputDecoration(
         labelText: labelText,
         floatingLabelBehavior: FloatingLabelBehavior.never,

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "16483417558",
+    "project_id": "mealsaver-ff016",
+    "storage_bucket": "mealsaver-ff016.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:16483417558:android:517e32c267e9677d50b877",
+        "android_client_info": {
+          "package_name": "com.example.meal_saver_phone"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2y3ZsbS6BQVUPrANAKy0qohOU69iJWpw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

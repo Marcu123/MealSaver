@@ -3,7 +3,6 @@ import 'package:meal_saver_phone/services/api_service.dart';
 import 'package:meal_saver_phone/services/stomp_service.dart';
 import 'package:meal_saver_phone/views/forgot_password.dart';
 import 'package:meal_saver_phone/views/home_page.dart';
-import 'package:meal_saver_phone/views/landing_page.dart';
 import 'package:meal_saver_phone/views/register_page.dart';
 import '../widgets/input_field.dart';
 import '../widgets/custom_button1.dart';
@@ -21,8 +20,15 @@ class LoginPageState extends State<LoginPage> {
   final ApiService apiService = ApiService();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool isLoading = false;
 
   Future<void> login() async {
+    if (isLoading) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
     try {
       final responseMessage = await apiService.loginUser(
         username: usernameController.text,
@@ -50,6 +56,12 @@ class LoginPageState extends State<LoginPage> {
           content: Text(e.toString().replaceAll("Exception:", "").trim()),
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -78,21 +90,17 @@ class LoginPageState extends State<LoginPage> {
                 style: TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 35),
-
               InputField(
                 controller: usernameController,
                 labelText: 'Enter your username',
                 isPassword: false,
               ),
-
               const SizedBox(height: 15),
-
               InputField(
                 controller: passwordController,
                 labelText: 'Enter your password',
                 isPassword: true,
               ),
-
               TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -106,10 +114,8 @@ class LoginPageState extends State<LoginPage> {
                   foregroundColor: WidgetStateProperty.resolveWith<Color>((
                     Set<WidgetState> states,
                   ) {
-                    if (states.contains(WidgetState.pressed)) {
-                      return Colors.white;
-                    }
-                    if (states.contains(WidgetState.hovered)) {
+                    if (states.contains(WidgetState.pressed) ||
+                        states.contains(WidgetState.hovered)) {
                       return Colors.white;
                     }
                     return const Color.fromARGB(255, 130, 24, 230);
@@ -120,18 +126,25 @@ class LoginPageState extends State<LoginPage> {
                   style: TextStyle(fontSize: 14.0),
                 ),
               ),
-
               const SizedBox(height: 20),
-
               CustomButton1(
                 text: 'Login',
-                onPressed: () {
-                  login();
-                },
+                onPressed: isLoading ? null : login,
+                child:
+                    isLoading
+                        ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                        : null,
               ),
-
               const SizedBox(height: 15),
-
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -153,10 +166,8 @@ class LoginPageState extends State<LoginPage> {
                       foregroundColor: WidgetStateProperty.resolveWith<Color>((
                         Set<WidgetState> states,
                       ) {
-                        if (states.contains(WidgetState.pressed)) {
-                          return Colors.white;
-                        }
-                        if (states.contains(WidgetState.hovered)) {
+                        if (states.contains(WidgetState.pressed) ||
+                            states.contains(WidgetState.hovered)) {
                           return Colors.white;
                         }
                         return const Color.fromARGB(255, 130, 24, 230);
