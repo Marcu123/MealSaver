@@ -8,6 +8,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,21 +22,20 @@ public class RecipeService {
         try {
             var stream = getClass().getResourceAsStream("/recipes.csv");
             assert stream != null;
-            var parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new InputStreamReader(stream));
-            for (CSVRecord record : parser) {
-                List<String> ingredients = parseList(record.get("Cleaned_Ingredients"));
-                List<String> categories = parseList(record.get("Categories"));
-                String imageName = record.get("Image_Name");
+            var parser = CSVFormat.DEFAULT
+                    .withFirstRecordAsHeader()
+                    .parse(new InputStreamReader(stream, StandardCharsets.UTF_8));
 
-                allRecipes.add(new RecipeDTO(
-                        record.get("Title"),
-                        ingredients,
-                        record.get("Instructions"),
-                        categories,
-                        imageName
-                ));
+            for (CSVRecord record : parser) {
+                String title = fixCorruptedCharacters(record.get("Title"));
+                String instructions = fixCorruptedCharacters(record.get("Instructions"));
+                String imageName = fixCorruptedCharacters(record.get("Image_Name"));
+
+                List<String> ingredients = parseAndFixList(record.get("Cleaned_Ingredients"));
+                List<String> categories = parseAndFixList(record.get("Categories"));
+
+                allRecipes.add(new RecipeDTO(title, ingredients, instructions, categories, imageName));
             }
-            System.out.println("✅ Loaded recipes: " + allRecipes.size());
         } catch (Exception e) {
             throw new RuntimeException("Could not read recipes", e);
         }
@@ -44,21 +44,32 @@ public class RecipeService {
     public List<RecipeDTO> getRecipes(List<String> ingredients, List<String> categories, int page, int size) {
         return allRecipes.stream()
                 .filter(recipe -> {
+                    // 🔍 DEBUG info
+                    System.out.println("🔎 Checking recipe: " + recipe.getTitle());
+
                     if (categories != null && !categories.isEmpty()) {
                         List<String> recipeCategories = recipe.getCategories().stream()
                                 .filter(Objects::nonNull)
                                 .map(c -> c.toLowerCase().trim())
                                 .toList();
 
-                        boolean anyMatch = categories.stream()
+                        System.out.println("➡ Categories in recipe: " + recipeCategories);
+                        System.out.println("➡ Categories selected: " + categories);
+
+                        boolean allMatch = categories.stream()
                                 .filter(Objects::nonNull)
-                                .map(String::toLowerCase)
-                                .anyMatch(filterCat ->
+                                .map(c -> c.toLowerCase().trim())
+                                .allMatch(filterCat ->
                                         recipeCategories.stream().anyMatch(recipeCat ->
-                                                recipeCat.contains(filterCat) || filterCat.contains(recipeCat)
+                                                recipeCat.equalsIgnoreCase(filterCat)
                                         )
                                 );
-                        if (!anyMatch) return false;
+
+                        System.out.println("✅ Category match result: " + allMatch);
+                        if (!allMatch) {
+                            System.out.println("❌ REJECTED by category\n");
+                            return false;
+                        }
                     }
 
                     if (ingredients != null && !ingredients.isEmpty()) {
@@ -75,9 +86,15 @@ public class RecipeService {
                                                 recipeIng.contains(filterIng) || filterIng.contains(recipeIng)
                                         )
                                 );
-                        if (!anyMatch) return false;
+
+                        System.out.println("✅ Ingredient match result: " + anyMatch);
+                        if (!anyMatch) {
+                            System.out.println("❌ REJECTED by ingredients\n");
+                            return false;
+                        }
                     }
 
+                    System.out.println("✅ ACCEPTED\n");
                     return true;
                 })
                 .skip((long) page * size)
@@ -93,12 +110,30 @@ public class RecipeService {
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
-    private List<String> parseList(String input) {
+    private List<String> parseAndFixList(String input) {
         if (input == null) return Collections.emptyList();
         input = input.replaceAll("^\\[|]$", "").trim();
         if (input.isEmpty()) return Collections.emptyList();
         return Arrays.stream(input.split(","))
-                .map(s -> s.replaceAll("'", "").trim().toLowerCase())
+                .map(s -> fixCorruptedCharacters(s.replaceAll("'", "").trim()))
                 .collect(Collectors.toList());
+    }
+
+    private String fixCorruptedCharacters(String input) {
+        if (input == null) return "";
+        return input
+                .replace("Â½", "½")
+                .replace("Â¾", "¾")
+                .replace("Â¼", "¼")
+                .replace("â€“", "–")
+                .replace("â€”", "—")
+                .replace("â€™", "’")
+                .replace("â€œ", "“")
+                .replace("â€", "”")
+                .replace("â€˜", "‘")
+                .replace("â€¦", "…")
+                .replace("Ã", "")
+                .replace("Â", "")
+                .trim();
     }
 }
