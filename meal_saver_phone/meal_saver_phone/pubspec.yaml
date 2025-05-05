@@ -23,6 +23,7 @@ dependencies:
   path: ^1.8.3
   crop_your_image: 0.7.5
   video_player: ^2.9.5
+  html_unescape: ^2.0.0
   
 
 dev_dependencies:
@@ -35,3 +36,9 @@ flutter:
   assets:
     - assets/images/
     - assets/videos/
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Italic.ttf
+          style: italic

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meal_saver_phone/models/recipe_dto.dart';
+import 'package:html_unescape/html_unescape.dart';
 
 class RecipeSlider extends StatelessWidget {
   final List<RecipeDTO> recipes;
@@ -16,8 +17,9 @@ class RecipeSlider extends StatelessWidget {
   });
 
   void _showRecipeDetails(BuildContext context, RecipeDTO recipe) {
+    final unescape = HtmlUnescape();
     final String imageUrl =
-        (recipe.imageName.startsWith('http'))
+        recipe.imageName.startsWith('http')
             ? "http://10.0.2.2:8082/proxy/image?url=${Uri.encodeComponent(recipe.imageName)}"
             : "http://10.0.2.2:8082/images/${recipe.imageName}";
 
@@ -27,7 +29,7 @@ class RecipeSlider extends StatelessWidget {
           (_) => AlertDialog(
             backgroundColor: const Color.fromARGB(255, 34, 34, 34),
             title: Text(
-              recipe.title,
+              unescape.convert(recipe.title),
               style: const TextStyle(color: Colors.white),
             ),
             content: SingleChildScrollView(
@@ -58,7 +60,7 @@ class RecipeSlider extends StatelessWidget {
                   ),
                   ...recipe.cleanedIngredients.map(
                     (i) => Text(
-                      "- $i",
+                      "- ${unescape.convert(i)}",
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),
@@ -72,7 +74,7 @@ class RecipeSlider extends StatelessWidget {
                   ),
                   Text(
                     recipe.instructions.isNotEmpty
-                        ? recipe.instructions
+                        ? unescape.convert(recipe.instructions)
                         : "No instructions provided.",
                     style: const TextStyle(color: Colors.white),
                   ),
@@ -91,8 +93,13 @@ class RecipeSlider extends StatelessWidget {
                           recipe.categories
                               .map(
                                 (cat) => Chip(
-                                  label: Text(cat),
-                                  backgroundColor: Colors.deepPurple.shade200,
+                                  label: Text(unescape.convert(cat)),
+                                  backgroundColor: const Color.fromARGB(
+                                    255,
+                                    103,
+                                    55,
+                                    192,
+                                  ),
                                   labelStyle: const TextStyle(
                                     color: Colors.white,
                                   ),
@@ -110,6 +117,7 @@ class RecipeSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
     final totalCards = recipes.length + 1;
 
     return Column(
@@ -156,7 +164,7 @@ class RecipeSlider extends StatelessWidget {
 
               final recipe = recipes[index];
               final String imageUrl =
-                  (recipe.imageName.startsWith('http'))
+                  recipe.imageName.startsWith('http')
                       ? "http://10.0.2.2:8082/proxy/image?url=${Uri.encodeComponent(recipe.imageName)}"
                       : "http://10.0.2.2:8082/images/${recipe.imageName}";
 
@@ -193,7 +201,7 @@ class RecipeSlider extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.all(12.0),
                         child: Text(
-                          recipe.title,
+                          unescape.convert(recipe.title),
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 16,

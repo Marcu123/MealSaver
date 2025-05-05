@@ -34,7 +34,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="09a0-194-176-167-136.ngrok-free.app" />
+                <data android:scheme="https" android:host="9a06-194-176-167-136.ngrok-free.app" />
             </intent-filter>
 
 

@@ -48,13 +48,14 @@ class ApiService {
     required String password,
   }) async {
     final url = Uri.parse("$baseUrl/auth/login");
-
     final headers = {'Accept': '*/*', 'Content-Type': 'application/json'};
-
     final body = jsonEncode({"username": username, "password": password});
 
     try {
       final response = await http.post(url, headers: headers, body: body);
+
+      print("🔐 Login status code: ${response.statusCode}");
+      print("🔐 Login response body: ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = jsonDecode(response.body);
@@ -62,7 +63,7 @@ class ApiService {
 
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', token);
-        print(prefs.getString('auth_token'));
+        print("✅ Token salvat: $token");
 
         return "Login successful!";
       } else {
@@ -73,8 +74,10 @@ class ApiService {
           return response.body;
         }
       }
-    } catch (e) {
-      return "Connection error! Verify your internet connection! ";
+    } catch (e, stackTrace) {
+      print("❌ Eroare login: $e");
+      print("📍 Stacktrace: $stackTrace");
+      return "Connection error! Verify your internet connection!";
     }
   }
 
@@ -378,10 +381,12 @@ class ApiService {
     );
 
     print('📥 Response status: ${response.statusCode}');
-    print('📥 Response body: ${response.body}');
+
+    final decodedBody = utf8.decode(response.bodyBytes);
+    print('📥 Decoded body: $decodedBody');
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(decodedBody);
       return List<AiRecipeDTO>.from(
         data.map((item) => AiRecipeDTO.fromJson(item)),
       );

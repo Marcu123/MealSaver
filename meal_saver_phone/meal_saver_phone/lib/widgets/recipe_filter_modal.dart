@@ -13,11 +13,29 @@ void showRecipeFilterModal(
   })
   onGenerate,
 ) {
-  String selectedCategory = 'meat';
+  List<String> selectedCategories = [];
   List<String> selectedIngredients = [];
   int currentPage = 0;
   int size = 5;
   TextEditingController ingredientController = TextEditingController();
+
+  final allCategories = [
+    'meat',
+    'seafood',
+    'vegetarian',
+    'vegan',
+    'dessert',
+    'salad',
+    'baked',
+    'pasta',
+    'rice & grains',
+    'soup & stew',
+    'snack',
+    'spicy',
+    'breakfast',
+    'drinks',
+    'other',
+  ];
 
   showModalBottomSheet(
     context: context,
@@ -40,41 +58,36 @@ void showRecipeFilterModal(
                       style: TextStyle(fontSize: 20, color: Colors.white),
                     ),
                     const SizedBox(height: 10),
-                    DropdownButton<String>(
-                      value: selectedCategory,
-                      dropdownColor: Colors.black,
-                      iconEnabledColor: Colors.white,
-                      items:
-                          [
-                                'meat',
-                                'seafood',
-                                'vegetarian',
-                                'vegan',
-                                'dessert',
-                                'salad',
-                                'baked',
-                                'pasta',
-                                'rice & grains',
-                                'soup & stew',
-                                'snack',
-                                'spicy',
-                                'breakfast',
-                                'other',
-                              ]
-                              .map(
-                                (e) => DropdownMenuItem(
-                                  value: e,
-                                  child: Text(
-                                    e,
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                      onChanged:
-                          (val) => setStateModal(() {
-                            selectedCategory = val!;
-                          }),
+                    ExpansionTile(
+                      title: Text(
+                        selectedCategories.isEmpty
+                            ? "Select categories"
+                            : "Selected: ${selectedCategories.join(', ')}",
+                        style: const TextStyle(color: Colors.white),
+                      ),
+
+                      children:
+                          allCategories.map((category) {
+                            return CheckboxListTile(
+                              value: selectedCategories.contains(category),
+                              onChanged: (checked) {
+                                setStateModal(() {
+                                  if (checked == true) {
+                                    selectedCategories.add(category);
+                                  } else {
+                                    selectedCategories.remove(category);
+                                  }
+                                });
+                              },
+                              title: Text(
+                                category,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              controlAffinity: ListTileControlAffinity.leading,
+                              activeColor: Colors.deepPurple,
+                              checkColor: Colors.white,
+                            );
+                          }).toList(),
                     ),
                     Row(
                       children: [
@@ -110,7 +123,12 @@ void showRecipeFilterModal(
                               .map(
                                 (ing) => Chip(
                                   label: Text(ing),
-                                  backgroundColor: Colors.deepPurple.shade200,
+                                  backgroundColor: const Color.fromARGB(
+                                    255,
+                                    103,
+                                    55,
+                                    192,
+                                  ),
                                   labelStyle: const TextStyle(
                                     color: Colors.white,
                                   ),
@@ -132,7 +150,12 @@ void showRecipeFilterModal(
                               setStateModal(() => currentPage--);
                             }
                           },
-                          child: const Text("Prev"),
+                          child: const Text(
+                            "Prev",
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 128, 68, 241),
+                            ),
+                          ),
                         ),
                         Text(
                           "Page: ${currentPage + 1}",
@@ -142,7 +165,12 @@ void showRecipeFilterModal(
                           onPressed: () {
                             setStateModal(() => currentPage++);
                           },
-                          child: const Text("Next"),
+                          child: const Text(
+                            "Next",
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 128, 68, 241),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -151,14 +179,14 @@ void showRecipeFilterModal(
                       onPressed: () async {
                         Navigator.pop(context);
                         final recipes = await fetchFilteredRecipes(
-                          selectedCategory,
+                          selectedCategories,
                           selectedIngredients,
                           currentPage,
                           size,
                         );
                         onGenerate(
                           recipes,
-                          category: selectedCategory,
+                          category: selectedCategories.join(', '),
                           ingredients: selectedIngredients,
                         );
                       },
@@ -174,25 +202,30 @@ void showRecipeFilterModal(
 }
 
 Future<List<RecipeDTO>> fetchFilteredRecipes(
-  String category,
+  List<String> categories,
   List<String> ingredients,
   int page,
   int size,
 ) async {
-  final uri = Uri.parse("http://10.0.2.2:8082/api/recipes/filter").replace(
-    queryParameters: {
-      'category': category,
-      'ingredients': ingredients,
-      'page': '$page',
-      'size': '$size',
-    },
-  );
+  final Map<String, dynamic> params = {
+    'page': '$page',
+    'size': '$size',
+    'ingredients': ingredients.join(','),
+  };
+
+  for (var c in categories) {
+    params.putIfAbsent('category', () => []).add(c);
+  }
+
+  final uri = Uri.http("10.0.2.2:8082", "/api/recipes/filter", params);
   print("📡 Sending request to: $uri");
 
   final response = await http.get(uri);
+  final decoded = utf8.decode(response.bodyBytes);
   print("📥 Response status: ${response.statusCode}");
+
   if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
+    final data = jsonDecode(decoded);
     print("📦 Data received: ${data.length} items");
     return List<RecipeDTO>.from(data.map((item) => RecipeDTO.fromJson(item)));
   } else {

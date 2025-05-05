@@ -18,7 +18,7 @@ class HomePage extends StatefulWidget {
   HomePageState createState() => HomePageState();
 }
 
-class HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   int _unreadCount = 0;
   bool showCategories = true;
@@ -37,6 +37,10 @@ class HomePageState extends State<HomePage> {
   String? profileImageUrl;
   bool isLoadingProfile = true;
 
+  late AnimationController _animationController;
+  late Animation<Offset> _slideAnimation;
+  bool _showSlider = false;
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +49,24 @@ class HomePageState extends State<HomePage> {
     final stomp = StompService();
     stomp.onNotificationReceived = _fetchUnreadNotifications;
     stomp.connect();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(1, 0),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    StompService().disconnect();
+    _animationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadProfileImage() async {
@@ -61,12 +83,6 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  @override
-  void dispose() {
-    StompService().disconnect();
-    super.dispose();
-  }
-
   Future<void> _fetchUnreadNotifications() async {
     final notifications = await ApiService().getNotifications();
     final unread = notifications.where((n) => !n.read).length;
@@ -74,6 +90,19 @@ class HomePageState extends State<HomePage> {
     setState(() {
       _unreadCount = unread;
     });
+  }
+
+  void navigateWithFade(BuildContext context, Widget page) {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => page,
+        transitionsBuilder:
+            (_, animation, __, child) =>
+                FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+    );
   }
 
   void _onItemTapped(int index) {
@@ -84,13 +113,16 @@ class HomePageState extends State<HomePage> {
     if (index == 0) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const HomePage(),
+          transitionsBuilder:
+              (_, animation, __, child) =>
+                  FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 300),
+        ),
       );
     } else if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const MyFoodsPage()),
-      );
+      navigateWithFade(context, const MyFoodsPage());
     }
   }
 
@@ -110,32 +142,13 @@ class HomePageState extends State<HomePage> {
       currentPage = 0;
       generatedRecipes = recipes;
       showCategories = true;
+      _showSlider = true;
     });
-  }
-
-  Future<void> _loadMoreRecipes() async {
-    if (lastCategory == null || lastIngredients == null) return;
-    if (!mounted) return;
-    setState(() {
-      currentPage++;
-    });
-
-    final more = await fetchFilteredRecipes(
-      lastCategory!,
-      lastIngredients!,
-      currentPage,
-      size,
-    );
-
-    if (!mounted) return;
-    setState(() {
-      generatedRecipes.addAll(more);
-    });
+    _animationController.forward(from: 0);
   }
 
   Future<void> _generateAiRecipes() async {
     if (isLoading) return;
-
     if (!mounted) return;
     setState(() {
       isLoading = true;
@@ -152,7 +165,9 @@ class HomePageState extends State<HomePage> {
         generatedRecipes =
             response.map((aiRecipe) => aiRecipe.toRecipeDTO()).toList();
         showCategories = false;
+        _showSlider = true;
       });
+      _animationController.forward(from: 0);
     } catch (e) {
       print('Error generating AI recipes: $e');
     } finally {
@@ -161,6 +176,26 @@ class HomePageState extends State<HomePage> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> _loadMoreRecipes() async {
+    if (lastCategory == null || lastIngredients == null) return;
+    if (!mounted) return;
+    setState(() {
+      currentPage++;
+    });
+
+    final more = await fetchFilteredRecipes(
+      lastCategory!.split(',').map((e) => e.trim()).toList(),
+      lastIngredients!,
+      currentPage,
+      size,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      generatedRecipes.addAll(more);
+    });
   }
 
   Future<void> _loadMoreAiRecipes() async {
@@ -250,12 +285,7 @@ class HomePageState extends State<HomePage> {
                             as ImageProvider,
               ),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ProfilePage()),
-                ).then((_) {
-                  _loadProfileImage(); // reîncarcă poza la întoarcere
-                });
+                navigateWithFade(context, const ProfilePage());
               },
             ),
           ),
@@ -323,21 +353,18 @@ class HomePageState extends State<HomePage> {
                                 : null,
                       ),
                       const SizedBox(height: 20),
-                      if (generatedRecipes.isEmpty)
-                        const Text(
-                          "No recipes found. Try adjusting your filters.",
-                          style: TextStyle(color: Colors.white70),
-                          textAlign: TextAlign.center,
-                        )
-                      else
-                        RecipeSlider(
-                          recipes: generatedRecipes,
-                          onLoadMore:
-                              showCategories
-                                  ? _loadMoreRecipes
-                                  : _loadMoreAiRecipes,
-                          showCategories: showCategories,
-                          isLoadingMore: isLoading,
+                      if (_showSlider)
+                        SlideTransition(
+                          position: _slideAnimation,
+                          child: RecipeSlider(
+                            recipes: generatedRecipes,
+                            onLoadMore:
+                                showCategories
+                                    ? _loadMoreRecipes
+                                    : _loadMoreAiRecipes,
+                            showCategories: showCategories,
+                            isLoadingMore: isLoading,
+                          ),
                         ),
                     ],
                   ),
@@ -347,7 +374,7 @@ class HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: const CustomBottomNav(selectedIndex: 0),
+      bottomNavigationBar: CustomBottomNav(selectedIndex: 0),
     );
   }
 }
