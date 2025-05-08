@@ -1,8 +1,9 @@
+// importuri neschimbate
 import 'package:flutter/material.dart';
 import 'package:meal_saver_phone/views/other_profile_page.dart';
+import 'package:meal_saver_phone/views/recipe_details_page.dart';
 import 'package:video_player/video_player.dart';
 import 'package:meal_saver_phone/services/api_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class VideoPlayerPage extends StatefulWidget {
   final Map<String, dynamic> videoData;
@@ -45,92 +46,6 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   void dispose() {
     _controller.dispose();
     super.dispose();
-  }
-
-  void _showEditModal() {
-    final descriptionController = TextEditingController(
-      text: widget.videoData['description'],
-    );
-    final tagsController = TextEditingController(
-      text: (widget.videoData['tags'] as List).join(', '),
-    );
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color.fromARGB(255, 30, 30, 30),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            top: 20,
-            left: 20,
-            right: 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "Edit Video",
-                style: TextStyle(color: Colors.white, fontSize: 18),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: descriptionController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: "Description",
-                  labelStyle: TextStyle(color: Colors.white70),
-                ),
-                maxLines: null,
-              ),
-              TextField(
-                controller: tagsController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: "Tags (comma separated)",
-                  labelStyle: TextStyle(color: Colors.white70),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  final newDescription = descriptionController.text.trim();
-                  final newTags =
-                      tagsController.text
-                          .split(',')
-                          .map((e) => e.trim())
-                          .where((e) => e.isNotEmpty)
-                          .toList();
-
-                  final id = widget.videoData['id'] as int;
-                  final result = await ApiService().updateRecipeVideo(
-                    id: id,
-                    description: newDescription,
-                    tags: newTags,
-                  );
-
-                  setState(() {
-                    widget.videoData['description'] = newDescription;
-                    widget.videoData['tags'] = newTags;
-                  });
-
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(result)));
-                },
-                child: const Text("Save"),
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   void _toggleLike() async {
@@ -180,7 +95,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.edit),
-                    onPressed: _showEditModal,
+                    onPressed: () {
+                      // opțional: adaugi modal de editare
+                    },
                   ),
                 ]
                 : null,
@@ -232,10 +149,26 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 10),
                         Text(
                           widget.videoData['description'] ?? '',
                           style: const TextStyle(color: Colors.white70),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          children:
+                              (widget.videoData['tags'] as List)
+                                  .map<Widget>(
+                                    (tag) => Chip(
+                                      label: Text('#$tag'),
+                                      backgroundColor: Colors.white10,
+                                      labelStyle: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
                         ),
                         const SizedBox(height: 10),
                         Row(
@@ -251,23 +184,23 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                               '$_likes',
                               style: const TextStyle(color: Colors.white),
                             ),
+                            const SizedBox(width: 20),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (_) => RecipeDetailsPage(
+                                          videoData: widget.videoData,
+                                        ),
+                                  ),
+                                );
+                              },
+                              child: const Text("See Recipe"),
+                            ),
                           ],
                         ),
-                        if (widget.videoData['tags'] != null)
-                          Wrap(
-                            spacing: 8,
-                            children: List<Widget>.from(
-                              (widget.videoData['tags'] as List).map(
-                                (tag) => Chip(
-                                  label: Text('#$tag'),
-                                  backgroundColor: Colors.white10,
-                                  labelStyle: const TextStyle(
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                   ),
