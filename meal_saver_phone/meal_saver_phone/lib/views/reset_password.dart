@@ -69,8 +69,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 labelText: 'New Password',
                 isPassword: true,
                 validator: (value) {
-                  if (value == null || value.isEmpty)
+                  if (value == null || value.isEmpty) {
                     return 'Password is required';
+                  }
                   if (!RegExp(
                     r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$',
                   ).hasMatch(value)) {

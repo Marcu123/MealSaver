@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:meal_saver_phone/services/link_handler.dart';
 import 'package:meal_saver_phone/services/notification_service.dart';
 import 'package:meal_saver_phone/services/permission_service.dart';
 import 'package:meal_saver_phone/views/profile_page.dart';
@@ -30,7 +29,7 @@ class MainApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       routes: {'/profile': (context) => const ProfilePage()},
-      home: Stack(children: [const SplashScreen(), const LinkHandler()]),
+      home: const SplashScreen(),
     );
   }
 }

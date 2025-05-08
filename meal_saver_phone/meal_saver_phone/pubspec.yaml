@@ -24,6 +24,7 @@ dependencies:
   crop_your_image: 0.7.5
   video_player: ^2.9.5
   html_unescape: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
   
 
 dev_dependencies:
@@ -42,3 +43,14 @@ flutter:
         - asset: assets/fonts/Roboto-Regular.ttf
         - asset: assets/fonts/Roboto-Italic.ttf
           style: italic
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/app_icon.png"
+  adaptive_icon_foreground: "assets/icons/app_icon.png"
+  adaptive_icon_background: "#000000"
+  remove_alpha_ios: true
+
+
+

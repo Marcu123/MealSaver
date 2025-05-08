@@ -11,16 +11,19 @@ class StompService {
   void Function()? onNotificationReceived;
 
   Future<void> connect() async {
+    if (_stompClient != null) {
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
-
     final url = 'ws://10.0.2.2:8082/ws?token=$token';
 
     _stompClient = StompClient(
       config: StompConfig(
         url: url,
         onConnect: _onConnectCallback,
-        onWebSocketError: (dynamic error) => print('WebSocket Error: $error'),
+        onWebSocketError: (error) => print('WebSocket Error: $error'),
         onStompError: (frame) => print('STOMP Error: ${frame.body}'),
         onDisconnect: (_) => print('Disconnected from STOMP'),
         reconnectDelay: const Duration(seconds: 5),
@@ -62,5 +65,6 @@ class StompService {
 
   void disconnect() {
     _stompClient?.deactivate();
+    _stompClient = null;
   }
 }

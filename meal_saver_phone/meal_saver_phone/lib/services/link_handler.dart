@@ -3,6 +3,8 @@ import 'package:app_links/app_links.dart';
 import 'package:http/http.dart' as http;
 import 'package:meal_saver_phone/views/login_page.dart';
 import 'package:meal_saver_phone/views/reset_password.dart';
+import 'package:meal_saver_phone/widgets/login_page_with_snack_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LinkHandler extends StatefulWidget {
   const LinkHandler({super.key});
@@ -32,30 +34,25 @@ class _LinkHandlerState extends State<LinkHandler> {
         try {
           final response = await http.get(
             Uri.parse(
-              "https://9a06-194-176-167-136.ngrok-free.app/api/auth/verify?token=$token",
+              "https://0075-194-176-167-117.ngrok-free.app/api/auth/verify?token=$token",
             ),
           );
 
           if (!mounted) return;
 
           if (response.statusCode == 200) {
-            Future.microtask(() {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-                (_) => false,
-              );
-
-              Future.delayed(const Duration(milliseconds: 300), () {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("✅ Account activated! You can now log in."),
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.remove('auth_token');
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (newContext) => LoginPageWithSnackBar(
+                      message: "✅ Account activated! You can now log in.",
                     ),
-                  );
-                }
-              });
-            });
+              ),
+              (_) => false,
+            );
           } else {
             _showDialog("Activation failed", response.body);
           }

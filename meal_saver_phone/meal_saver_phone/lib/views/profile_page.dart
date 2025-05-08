@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meal_saver_phone/services/api_service.dart';
+import 'package:meal_saver_phone/services/stomp_service.dart';
 import 'package:meal_saver_phone/views/login_page.dart';
 import 'package:meal_saver_phone/views/update_profile_page.dart';
 import 'package:meal_saver_phone/widgets/custom_app_bar.dart';
@@ -27,8 +28,22 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _loadUserData() async {
-    final data = await ApiService().getCurrentUser();
-    if (data != null && mounted) {
+    try {
+      final data = await ApiService().getCurrentUser();
+
+      if (!mounted) return;
+
+      if (data == null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('auth_token');
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
+        return;
+      }
+
       setState(() {
         username = data['username'] ?? "";
         email = data['email'] ?? "";
@@ -36,12 +51,21 @@ class _ProfilePageState extends State<ProfilePage> {
             "${data['firstName'] ?? ''} ${data['lastName'] ?? ''}".trim();
         profileImageUrl = data['profileImageUrl'];
       });
+    } catch (e) {
+      print("❌ Error loading user data: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Couldn't load user data. Please log in again."),
+        ),
+      );
     }
   }
 
   void _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
+
+    StompService().disconnect();
 
     if (!mounted) return;
     Navigator.pushReplacement(
@@ -140,6 +164,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         ScaffoldMessenger.of(
                           context,
                         ).showSnackBar(SnackBar(content: Text(result)));
+
+                        if (result.toLowerCase().contains("success")) {
+                          await Future.delayed(const Duration(seconds: 2));
+                          _logout();
+                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
