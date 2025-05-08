@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meal_saver_phone/services/api_service.dart';
+import 'package:meal_saver_phone/widgets/search_dialog.dart';
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String title;
@@ -48,27 +49,31 @@ class _CustomAppBarState extends State<CustomAppBar> {
           fontWeight: FontWeight.bold,
         ),
       ),
-      actions:
-          widget.title == "Home"
-              ? [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, "/profile");
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 12.0),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundImage:
-                          profileImageUrl != null && profileImageUrl!.isNotEmpty
-                              ? NetworkImage(profileImageUrl!)
-                              : const AssetImage("assets/images/logo.png")
-                                  as ImageProvider,
-                    ),
-                  ),
-                ),
-              ]
-              : null,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.search, color: Colors.white),
+          onPressed: () {
+            showDialog(context: context, builder: (_) => const SearchDialog());
+          },
+        ),
+        if (widget.title == "Home")
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, "/profile");
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12.0),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundImage:
+                    profileImageUrl != null && profileImageUrl!.isNotEmpty
+                        ? NetworkImage(profileImageUrl!)
+                        : const AssetImage("assets/images/logo.png")
+                            as ImageProvider,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

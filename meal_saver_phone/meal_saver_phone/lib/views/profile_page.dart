@@ -3,10 +3,15 @@ import 'package:meal_saver_phone/services/api_service.dart';
 import 'package:meal_saver_phone/services/stomp_service.dart';
 import 'package:meal_saver_phone/views/login_page.dart';
 import 'package:meal_saver_phone/views/update_profile_page.dart';
+import 'package:meal_saver_phone/views/video_player_page.dart';
 import 'package:meal_saver_phone/widgets/custom_app_bar.dart';
 import 'package:meal_saver_phone/widgets/custom_button1.dart';
 import 'package:meal_saver_phone/widgets/custom_button2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_player/video_player.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
+import 'dart:io';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -20,30 +25,31 @@ class _ProfilePageState extends State<ProfilePage> {
   String email = "";
   String fullName = "";
   String? profileImageUrl;
+  List<Map<String, dynamic>> myVideos = [];
+  List<Map<String, dynamic>> likedVideos = [];
+  bool showLiked = false;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _loadMyVideos();
+    _loadLikedVideos();
   }
 
   Future<void> _loadUserData() async {
     try {
       final data = await ApiService().getCurrentUser();
-
       if (!mounted) return;
-
       if (data == null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('auth_token');
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const LoginPage()),
         );
         return;
       }
-
       setState(() {
         username = data['username'] ?? "";
         email = data['email'] ?? "";
@@ -53,20 +59,43 @@ class _ProfilePageState extends State<ProfilePage> {
       });
     } catch (e) {
       print("❌ Error loading user data: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Couldn't load user data. Please log in again."),
-        ),
-      );
     }
+  }
+
+  Future<void> _loadMyVideos() async {
+    try {
+      final videos = await ApiService().getMyRecipeVideos();
+      if (!mounted) return;
+      setState(() {
+        myVideos = videos;
+      });
+    } catch (e) {
+      print("❌ Error loading videos: $e");
+    }
+  }
+
+  Future<void> _loadLikedVideos() async {
+    try {
+      final videos = await ApiService().getLikedVideos();
+      if (!mounted) return;
+      setState(() {
+        likedVideos = videos;
+      });
+    } catch (e) {
+      print("❌ Error loading liked videos: $e");
+    }
+  }
+
+  void _toggleGrid() {
+    setState(() {
+      showLiked = !showLiked;
+    });
   }
 
   void _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
-
     StompService().disconnect();
-
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
@@ -74,121 +103,121 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _showChangePasswordDialog() {
-    final oldPasswordController = TextEditingController();
-    final newPasswordController = TextEditingController();
-    final _formKey = GlobalKey<FormState>();
+  void _showUploadModal() {
+    final videoUrlController = TextEditingController();
+    final descriptionController = TextEditingController();
+    final tagsController = TextEditingController();
+    final picker = ImagePicker();
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 30, 30, 30),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text(
-            'Change Password',
-            style: TextStyle(color: Colors.white),
-          ),
-          content: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: oldPasswordController,
-                  obscureText: true,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: 'Old Password',
-                    labelStyle: TextStyle(color: Colors.white70),
-                  ),
-                  validator:
-                      (value) =>
-                          value == null || value.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: newPasswordController,
-                  obscureText: true,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: 'New Password',
-                    labelStyle: TextStyle(color: Colors.white70),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Required';
-                    }
-                    if (!RegExp(
-                      r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$',
-                    ).hasMatch(value)) {
-                      return '8+ chars, 1 letter, 1 number, 1 symbol';
-                    }
-                    return null;
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      isScrollControlled: true,
+      backgroundColor: const Color.fromARGB(255, 30, 30, 30),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                top: 20,
+                left: 20,
+                right: 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextButton(
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                  const Text(
+                    "Upload Recipe Video",
+                    style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
-                  ElevatedButton(
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: videoUrlController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: "Video URL",
+                      labelStyle: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                  TextButton.icon(
                     onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                        final result = await ApiService().changePassword(
-                          oldPasswordController.text,
-                          newPasswordController.text,
+                      final picked = await picker.pickVideo(
+                        source: ImageSource.gallery,
+                      );
+                      if (picked != null) {
+                        final bytes = await picked.readAsBytes();
+                        final url = await ApiService().uploadVideoToCloudinary(
+                          bytes,
                         );
-
-                        if (!context.mounted) return;
-                        Navigator.of(context).pop();
-
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(result)));
-
-                        if (result.toLowerCase().contains("success")) {
-                          await Future.delayed(const Duration(seconds: 2));
-                          _logout();
+                        if (url != null && mounted) {
+                          setModalState(() {
+                            videoUrlController.text = url;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Upload complete!')),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Upload failed')),
+                          );
                         }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('No video selected')),
+                        );
                       }
                     },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      backgroundColor: const Color.fromARGB(255, 130, 24, 230),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                    icon: const Icon(Icons.upload_file, color: Colors.white),
+                    label: const Text(
+                      "Pick & Upload Video",
+                      style: TextStyle(color: Colors.white),
                     ),
-                    child: const Text("Submit"),
                   ),
+                  TextField(
+                    controller: descriptionController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: "Description",
+                      labelStyle: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                  TextField(
+                    controller: tagsController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: "Tags (comma separated)",
+                      labelStyle: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final tags =
+                          tagsController.text
+                              .split(',')
+                              .map((e) => e.trim())
+                              .toList();
+                      final result = await ApiService().uploadRecipeVideo(
+                        videoUrl: videoUrlController.text,
+                        description: descriptionController.text,
+                        tags: tags,
+                      );
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(result)));
+                      await _loadMyVideos();
+                    },
+                    child: const Text("Upload"),
+                  ),
+                  const SizedBox(height: 20),
                 ],
               ),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -196,6 +225,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final displayedVideos = showLiked ? likedVideos : myVideos;
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 22, 22, 22),
       appBar: const CustomAppBar(title: "Profile", showBack: true),
@@ -205,17 +236,13 @@ class _ProfilePageState extends State<ProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            Center(
-              child:
+            CircleAvatar(
+              radius: 60,
+              backgroundImage:
                   profileImageUrl != null && profileImageUrl!.isNotEmpty
-                      ? CircleAvatar(
-                        radius: 60,
-                        backgroundImage: NetworkImage(profileImageUrl!),
-                      )
-                      : const CircleAvatar(
-                        radius: 60,
-                        backgroundImage: AssetImage("assets/images/logo.png"),
-                      ),
+                      ? NetworkImage(profileImageUrl!)
+                      : const AssetImage("assets/images/logo.png")
+                          as ImageProvider,
             ),
             const SizedBox(height: 20),
             Text(
@@ -232,7 +259,7 @@ class _ProfilePageState extends State<ProfilePage> {
               email,
               style: const TextStyle(color: Colors.white70, fontSize: 16),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
               decoration: BoxDecoration(
@@ -250,7 +277,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           builder: (context) => const UpdateProfilePage(),
                         ),
                       );
-
                       if (updated == true) {
                         _logout();
                       } else {
@@ -258,21 +284,87 @@ class _ProfilePageState extends State<ProfilePage> {
                       }
                     },
                   ),
-
                   const SizedBox(height: 15),
                   CustomButton1(
                     text: "Change Password",
-                    onPressed: _showChangePasswordDialog,
+                    onPressed: _showUploadModal,
                   ),
                   const SizedBox(height: 15),
-                  CustomButton1(
-                    text: "Log Out",
-                    onPressed: () {
-                      _logout();
-                    },
+                  CustomButton1(text: "Log Out", onPressed: _logout),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _toggleGrid,
+                        icon: Icon(
+                          showLiked ? Icons.favorite : Icons.favorite_border,
+                          color: Colors.pinkAccent,
+                        ),
+                        tooltip: "Toggle Liked Videos",
+                      ),
+                      Text(
+                        showLiked
+                            ? "Liked Videos (${likedVideos.length})"
+                            : "My Videos (${myVideos.length})",
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ],
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 20),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 1,
+              ),
+              itemCount: displayedVideos.length + (showLiked ? 0 : 1),
+              itemBuilder: (context, index) {
+                if (index == 0 && !showLiked) {
+                  return GestureDetector(
+                    onTap: _showUploadModal,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white10,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.add, color: Colors.white, size: 40),
+                      ),
+                    ),
+                  );
+                }
+                final video = displayedVideos[showLiked ? index : index - 1];
+                final videoUrl = video['videoUrl'] as String;
+                final thumbnailUrl = videoUrl
+                    .replaceFirst("/upload/", "/upload/so_0/")
+                    .replaceAll(".mp4", ".jpg");
+                return GestureDetector(
+                  onTap:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => VideoPlayerPage(videoData: video),
+                        ),
+                      ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(thumbnailUrl),
+                        fit: BoxFit.cover,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),

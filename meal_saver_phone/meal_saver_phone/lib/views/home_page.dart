@@ -10,6 +10,7 @@ import 'package:meal_saver_phone/widgets/recipe_slider.dart';
 import 'package:meal_saver_phone/models/recipe_dto.dart';
 import 'package:meal_saver_phone/services/api_service.dart';
 import 'package:meal_saver_phone/services/stomp_service.dart';
+import 'package:meal_saver_phone/widgets/search_dialog.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -236,6 +237,15 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.white),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => const SearchDialog(),
+              );
+            },
+          ),
           Builder(
             builder:
                 (context) => Stack(
@@ -291,6 +301,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
           ),
         ],
       ),
+
       endDrawer: NotificationsDrawer(onClose: _fetchUnreadNotifications),
       body: SafeArea(
         child: Column(

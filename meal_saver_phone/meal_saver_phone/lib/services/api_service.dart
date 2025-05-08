@@ -561,4 +561,297 @@ class ApiService {
       print('❌ Eroare salvare: ${response.statusCode} -> ${response.body}');
     }
   }
+
+  Future<List<Map<String, dynamic>>> getRandomRecipeVideos({
+    int count = 10,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    if (token == null) throw Exception("Not authenticated");
+
+    final uri = Uri.parse(
+      "http://10.0.2.2:8082/api/chef-battle/random?count=$count",
+    );
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(utf8.decode(response.bodyBytes));
+      return List<Map<String, dynamic>>.from(data);
+    } else {
+      throw Exception("Failed to fetch recipe videos: ${response.statusCode}");
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getMyRecipeVideos() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/my-videos');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    } else {
+      throw Exception("Failed to load your videos");
+    }
+  }
+
+  Future<String> uploadRecipeVideo({
+    required String videoUrl,
+    required List<String> tags,
+    required String description,
+    String? thumbnailUrl,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    if (token == null) return "Not authenticated";
+
+    final url = Uri.parse("http://10.0.2.2:8082/api/chef-battle/upload");
+
+    final body = {
+      "videoUrl": videoUrl,
+      "tags": tags,
+      "description": description,
+      "thumbnailUrl": thumbnailUrl ?? "",
+      "createdAt": DateTime.now().toIso8601String(),
+      "likes": 0,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return "Video uploaded successfully!";
+      } else {
+        print("❌ Upload failed: ${response.body}");
+        return "Upload failed: ${response.statusCode}";
+      }
+    } catch (e) {
+      return "Error: $e";
+    }
+  }
+
+  Future<Map<String, dynamic>> likeRecipeVideo(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/$id/like');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to like video");
+    }
+  }
+
+  Future<String?> uploadVideoToCloudinary(Uint8List videoBytes) async {
+    const cloudName = 'dkx85t4ni';
+    const uploadPreset = 'flutter_unsigned';
+
+    final uri = Uri.parse(
+      'https://api.cloudinary.com/v1_1/$cloudName/video/upload',
+    );
+
+    final request =
+        http.MultipartRequest('POST', uri)
+          ..fields['upload_preset'] = uploadPreset
+          ..files.add(
+            http.MultipartFile.fromBytes(
+              'file',
+              videoBytes,
+              filename: 'video.mp4',
+            ),
+          );
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      final resStr = await response.stream.bytesToString();
+      final data = jsonDecode(resStr);
+      return data['secure_url'];
+    } else {
+      print("Upload failed: ${response.statusCode}");
+      return null;
+    }
+  }
+
+  Future<String> updateRecipeVideo({
+    required int id,
+    required String description,
+    required List<String> tags,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/$id');
+
+    final response = await http.put(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'id': id, 'description': description, 'tags': tags}),
+    );
+
+    if (response.statusCode == 200) {
+      return "Video updated successfully!";
+    } else {
+      return "Failed to update video: ${response.statusCode}";
+    }
+  }
+
+  Future<String> deleteRecipeVideo(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/$id');
+
+    final response = await http.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 204) {
+      return "Video deleted successfully!";
+    } else {
+      return "Failed to delete video: ${response.statusCode}";
+    }
+  }
+
+  Future<void> unlikeRecipeVideo(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/$id/unlike');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to unlike video: ${response.statusCode}");
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getLikedVideos() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/liked');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load liked videos');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getVideosByUsername(
+    String username,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token == null) throw Exception("Not authenticated");
+
+    final uri = Uri.parse("$baseUrl/chef-battle/by-user/$username");
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    } else {
+      throw Exception("Failed to fetch videos for $username");
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> searchUsers(String query) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url = Uri.parse("$baseUrl/users/search?usernamePart=$query");
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    } else {
+      throw Exception("User search failed");
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> filterVideosByTags(
+    List<String> tags,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final uri = Uri.parse("$baseUrl/chef-battle/tags?tags=${tags.join(',')}");
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    } else {
+      throw Exception("Video tag search failed: ${response.statusCode}");
+    }
+  }
 }
