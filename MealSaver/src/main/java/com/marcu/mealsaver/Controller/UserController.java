@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import com.marcu.mealsaver.Service.UserService;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -66,6 +67,12 @@ public class UserController {
         UserDTO userDTO = userService.getCurrentUserData(userDetails.getUsername());
         return ResponseEntity.ok(userDTO);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<UserDTO>> searchUsers(@RequestParam String usernamePart) {
+        return ResponseEntity.ok(userService.searchByUsernameContains(usernamePart));
+    }
+
 
     @PutMapping("/upload-profile-image")
     public ResponseEntity<Void> uploadImageByUsername(@RequestBody Map<String, String> request) {

@@ -52,10 +52,15 @@ public class User{
     @Nullable
     private List<Food> foods;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecipeVideo> recipeVideos;
+
     @Column(nullable = false)
     private boolean enabled = false;
 
     @Column(name = "profile_image_url")
     private String profileImageUrl;
+
+
 
 }

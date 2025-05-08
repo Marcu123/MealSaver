@@ -24,7 +24,9 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -216,5 +218,13 @@ public class UserService {
         dto.setProfileImageUrl(user.getProfileImageUrl());
         return dto;
     }
+
+    public List<UserDTO> searchByUsernameContains(String part) {
+        return userRepository.findByUsernameContainingIgnoreCase(part)
+                .stream()
+                .map(userMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
 
 }
