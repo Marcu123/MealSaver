@@ -21,9 +21,19 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
     }
 
     @Override
-    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
+    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
+                                   WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
         if (request instanceof ServletServerHttpRequest servletRequest) {
-            String token = servletRequest.getServletRequest().getParameter("token");
+            HttpServletRequest httpRequest = servletRequest.getServletRequest();
+
+            String token = httpRequest.getParameter("token");
+
+            if (token == null) {
+                String authHeader = httpRequest.getHeader("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    token = authHeader.substring(7);
+                }
+            }
 
             if (token != null && jwtUtil.isTokenValid(token, jwtUtil.extractUsername(token))) {
                 String username = jwtUtil.extractUsername(token);
@@ -34,6 +44,7 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
         }
         return false;
     }
+
 
     @Override
     public void afterHandshake(ServerHttpRequest request,
