@@ -30,7 +30,7 @@ class _AnimatedFridgeState extends State<AnimatedFridge>
 
     _scaleAnimation = Tween<double>(
       begin: 1.0,
-      end: 1.1, // un pic de zoom, nu exagerat
+      end: 1.1,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _controller.addStatusListener((status) {

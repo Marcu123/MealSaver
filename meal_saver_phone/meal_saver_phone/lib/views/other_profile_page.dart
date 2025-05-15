@@ -30,7 +30,6 @@ class _OtherProfilePageState extends State<OtherProfilePage> {
         isLoading = false;
       });
     } catch (e) {
-      debugPrint("❌ Error loading user videos: $e");
       if (mounted) setState(() => isLoading = false);
     }
   }

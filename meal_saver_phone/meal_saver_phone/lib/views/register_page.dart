@@ -97,7 +97,6 @@ class RegisterPageState extends State<RegisterPage> {
       showSnackbar(responseMessage);
 
       if (responseMessage.toLowerCase().contains("check your email")) {
-        // ✅ Încarcă imaginea și trimite URL-ul DOAR dacă există
         if (userImage != null) {
           final bytes = await userImage!.readAsBytes();
           final cloudUrl = await apiService.uploadToCloudinary(bytes);

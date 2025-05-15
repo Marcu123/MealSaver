@@ -59,7 +59,8 @@ class ChefBattlePage extends StatefulWidget {
   State<ChefBattlePage> createState() => _ChefBattlePageState();
 }
 
-class _ChefBattlePageState extends State<ChefBattlePage> {
+class _ChefBattlePageState extends State<ChefBattlePage>
+    with SingleTickerProviderStateMixin {
   List<RecipeVideoDTO> videos = [];
   late PageController _pageController;
   VideoPlayerController? _videoController;
@@ -99,9 +100,8 @@ class _ChefBattlePageState extends State<ChefBattlePage> {
           _loadVideo(videos[0].videoUrl);
         }
       }
-    } catch (e, stacktrace) {
-      print("❌ Error fetching videos: $e");
-      print(stacktrace);
+    } catch (e) {
+      print("Error fetching videos: $e");
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -149,7 +149,7 @@ class _ChefBattlePageState extends State<ChefBattlePage> {
         });
       }
     } catch (e) {
-      print("❌ Error toggling like: $e");
+      print("Error toggling like: $e");
     }
   }
 
@@ -163,7 +163,7 @@ class _ChefBattlePageState extends State<ChefBattlePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color.fromARGB(255, 22, 22, 22),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -195,57 +195,60 @@ class _ChefBattlePageState extends State<ChefBattlePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (_) => OtherProfilePage(
-                                              username: video.username,
-                                            ),
-                                      ),
-                                    );
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 8.0,
-                                      horizontal: 4.0,
-                                    ),
-                                    child: Text(
-                                      '@${video.username}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
+                            GestureDetector(
+                              onTap:
+                                  () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) => OtherProfilePage(
+                                            username: video.username,
+                                          ),
                                     ),
                                   ),
-                                ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.person,
+                                    color: Colors.white70,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '@${video.username}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 8),
                             Text(
                               video.description,
-                              style: const TextStyle(color: Colors.white70),
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
                             ),
                             const SizedBox(height: 10),
                             Wrap(
-                              spacing: 8,
+                              spacing: 6,
                               children:
                                   video.tags
                                       .map(
                                         (tag) => Chip(
                                           label: Text('#$tag'),
-                                          backgroundColor: Colors.white10,
+                                          backgroundColor: const Color.fromARGB(
+                                            255,
+                                            103,
+                                            55,
+                                            192,
+                                          ),
                                           labelStyle: const TextStyle(
-                                            color: Colors.white70,
+                                            color: Colors.white,
                                           ),
                                         ),
                                       )
@@ -267,7 +270,7 @@ class _ChefBattlePageState extends State<ChefBattlePage> {
                                   style: const TextStyle(color: Colors.white),
                                 ),
                                 const SizedBox(width: 20),
-                                ElevatedButton(
+                                ElevatedButton.icon(
                                   onPressed: () {
                                     Navigator.push(
                                       context,
@@ -279,7 +282,24 @@ class _ChefBattlePageState extends State<ChefBattlePage> {
                                       ),
                                     );
                                   },
-                                  child: const Text("See Recipe"),
+                                  icon: const Icon(Icons.receipt_long),
+                                  label: const Text("See Recipe"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color.fromARGB(
+                                      255,
+                                      130,
+                                      24,
+                                      230,
+                                    ),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),

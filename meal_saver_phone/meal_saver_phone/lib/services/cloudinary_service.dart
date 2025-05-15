@@ -22,7 +22,6 @@ Future<String?> uploadToCloudinary(File imageFile) async {
     final data = json.decode(resStr);
     return data['secure_url'];
   } else {
-    print("Upload failed: ${response.statusCode}");
     return null;
   }
 }

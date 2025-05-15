@@ -47,7 +47,6 @@ class LandingPageState extends State<LandingPage> {
         context,
         MaterialPageRoute(builder: (context) => page),
       ).then((_) {
-        // Reset when back
         setState(() {
           _opacity = 1.0;
           _isNavigating = false;

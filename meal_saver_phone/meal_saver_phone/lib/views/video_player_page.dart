@@ -1,4 +1,3 @@
-// importuri neschimbate
 import 'package:flutter/material.dart';
 import 'package:meal_saver_phone/views/other_profile_page.dart';
 import 'package:meal_saver_phone/views/recipe_details_page.dart';
@@ -65,7 +64,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         });
       }
     } catch (e) {
-      print("❌ Error toggling like: $e");
+      print("Error toggling like: $e");
     }
   }
 
@@ -93,12 +92,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                       ).showSnackBar(SnackBar(content: Text(result)));
                     },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () {
-                      // opțional: adaugi modal de editare
-                    },
-                  ),
+                  IconButton(icon: const Icon(Icons.edit), onPressed: () {}),
                 ]
                 : null,
       ),

@@ -16,7 +16,7 @@ class RecipeVideoDTO {
     required this.thumbnailUrl,
     required this.likes,
     required this.username,
-    this.likedByUser = false, // <- esențial
+    this.likedByUser = false,
   });
 
   factory RecipeVideoDTO.fromJson(Map<String, dynamic> json) {

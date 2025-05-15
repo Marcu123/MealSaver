@@ -8,10 +8,7 @@ import 'package:meal_saver_phone/widgets/custom_app_bar.dart';
 import 'package:meal_saver_phone/widgets/custom_button1.dart';
 import 'package:meal_saver_phone/widgets/custom_button2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:video_player/video_player.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:convert';
-import 'dart:io';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -58,7 +55,7 @@ class _ProfilePageState extends State<ProfilePage> {
         profileImageUrl = data['profileImageUrl'];
       });
     } catch (e) {
-      print("❌ Error loading user data: $e");
+      print("Error loading user data: $e");
     }
   }
 
@@ -70,7 +67,7 @@ class _ProfilePageState extends State<ProfilePage> {
         myVideos = videos;
       });
     } catch (e) {
-      print("❌ Error loading videos: $e");
+      print("Error loading videos: $e");
     }
   }
 
@@ -82,7 +79,7 @@ class _ProfilePageState extends State<ProfilePage> {
         likedVideos = videos;
       });
     } catch (e) {
-      print("❌ Error loading liked videos: $e");
+      print("Error loading liked videos: $e");
     }
   }
 

@@ -54,16 +54,12 @@ class ApiService {
     try {
       final response = await http.post(url, headers: headers, body: body);
 
-      print("🔐 Login status code: ${response.statusCode}");
-      print("🔐 Login response body: ${response.body}");
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = jsonDecode(response.body);
         final String token = responseData['token'];
 
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', token);
-        print("✅ Token salvat: $token");
 
         return "Login successful!";
       } else {
@@ -74,9 +70,7 @@ class ApiService {
           return response.body;
         }
       }
-    } catch (e, stackTrace) {
-      print("❌ Eroare login: $e");
-      print("📍 Stacktrace: $stackTrace");
+    } catch (e) {
       return "Connection error! Verify your internet connection!";
     }
   }
@@ -204,7 +198,6 @@ class ApiService {
     final token = prefs.getString('auth_token');
 
     if (token == null) {
-      print("⚠️ No token found");
       return null;
     }
 
@@ -219,16 +212,12 @@ class ApiService {
         },
       );
 
-      print("📥 Status code: ${response.statusCode}");
-      print("📥 Body: ${response.body}");
-
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
 
       return null;
     } catch (e) {
-      print("❌ Error fetching user data: $e");
       return null;
     }
   }
@@ -269,10 +258,6 @@ class ApiService {
         }),
       );
 
-      print("📤 Sent: $name, $size, $expirationDate, $username");
-      print("📥 Status: ${response.statusCode}");
-      print("📥 Body: ${response.body}");
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         return "Food added successfully";
       } else {
@@ -280,7 +265,6 @@ class ApiService {
         return data['message'] ?? "Error adding food";
       }
     } catch (e) {
-      print("❌ Error sending food: $e");
       return "Connection error! Verify your internet.";
     }
   }
@@ -380,10 +364,7 @@ class ApiService {
       },
     );
 
-    print('📥 Response status: ${response.statusCode}');
-
     final decodedBody = utf8.decode(response.bodyBytes);
-    print('📥 Decoded body: $decodedBody');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(decodedBody);
@@ -413,9 +394,6 @@ class ApiService {
         'Content-Type': 'application/json',
       },
     );
-
-    print('📥 Response (foods/my): ${response.statusCode}');
-    print('📥 Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -538,10 +516,8 @@ class ApiService {
     if (response.statusCode == 200) {
       final resStr = await response.stream.bytesToString();
       final data = json.decode(resStr);
-      print("Image uploaded: ${data['secure_url']}");
       return data['secure_url'];
     } else {
-      print("Upload failed: ${response.statusCode}");
       return null;
     }
   }
@@ -554,12 +530,6 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'username': username, 'url': url}),
     );
-
-    if (response.statusCode == 204) {
-      print('✅ Link salvat în backend fără token');
-    } else {
-      print('❌ Eroare salvare: ${response.statusCode} -> ${response.body}');
-    }
   }
 
   Future<List<Map<String, dynamic>>> getRandomRecipeVideos({
@@ -645,7 +615,6 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return "Video uploaded successfully!";
       } else {
-        print("❌ Upload failed: ${response.body}");
         return "Upload failed: ${response.statusCode}";
       }
     } catch (e) {
@@ -700,7 +669,6 @@ class ApiService {
       final data = jsonDecode(resStr);
       return data['secure_url'];
     } else {
-      print("Upload failed: ${response.statusCode}");
       return null;
     }
   }

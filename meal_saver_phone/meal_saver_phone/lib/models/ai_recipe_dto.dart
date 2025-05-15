@@ -1,4 +1,4 @@
-import 'recipe_dto.dart'; // important să imporți aici
+import 'recipe_dto.dart';
 
 class AiRecipeDTO {
   final String title;
@@ -37,12 +37,11 @@ class AiRecipeDTO {
     );
   }
 
-  // 🔥 Conversie către RecipeDTO
   RecipeDTO toRecipeDTO() {
     return RecipeDTO(
       title: title,
       cleanedIngredients: ingredients,
-      instructions: steps.join('\n'), // concatenăm pașii în text
+      instructions: steps.join('\n'),
       categories: optionalIngredientsToBuy,
       imageName: imageUrl,
     );

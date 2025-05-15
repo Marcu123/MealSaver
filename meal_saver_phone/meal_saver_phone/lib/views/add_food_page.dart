@@ -95,8 +95,9 @@ class _AddFoodPageState extends State<AddFoodPage> {
                 controller: nameController,
                 validator: (value) {
                   if (value == null || value.isEmpty) return "Name is required";
-                  if (value.length < 3)
+                  if (value.length < 3) {
                     return "Name must be at least 3 characters";
+                  }
                   return null;
                 },
               ),
@@ -123,11 +124,13 @@ class _AddFoodPageState extends State<AddFoodPage> {
                       controller: sizeController,
                       keyboardType: TextInputType.number,
                       validator: (value) {
-                        if (value == null || value.isEmpty)
+                        if (value == null || value.isEmpty) {
                           return "Size is required";
+                        }
                         final number = double.tryParse(value);
-                        if (number == null || number <= 0)
+                        if (number == null || number <= 0) {
                           return "Enter a valid number > 0";
+                        }
                         return null;
                       },
                     ),

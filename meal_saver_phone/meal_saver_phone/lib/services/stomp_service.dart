@@ -34,8 +34,6 @@ class StompService {
   }
 
   void _onConnectCallback(StompFrame frame) {
-    print('✅ Connected to STOMP');
-
     _stompClient?.subscribe(
       destination: '/user/queue/expired',
       callback: (StompFrame frame) {

@@ -42,7 +42,6 @@ class _MyFoodsPageState extends State<MyFoodsPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => isLoading = false);
-      print('Failed to load foods: $e');
     }
   }
 

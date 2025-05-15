@@ -29,7 +29,6 @@ class _SplashScreenState extends State<SplashScreen> {
     _appLinks.uriLinkStream.listen((Uri? uri) async {
       if (uri == null) return;
 
-      print("📨 Received deep link: $uri");
       final token = uri.queryParameters['token'];
 
       if (uri.path == "/api/auth/verify" && token != null) {
@@ -102,15 +101,41 @@ class _SplashScreenState extends State<SplashScreen> {
     final token = prefs.getString('auth_token');
 
     if (token != null && token.isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      final isValid = await _validateToken(token);
+
+      if (isValid) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomePage()),
+        );
+      } else {
+        await prefs.remove('auth_token');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LandingPage()),
+        );
+      }
     } else {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const LandingPage()),
       );
+    }
+  }
+
+  Future<bool> _validateToken(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8082/api/users/me'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
     }
   }
 

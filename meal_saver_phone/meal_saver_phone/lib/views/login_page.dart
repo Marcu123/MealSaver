@@ -46,10 +46,8 @@ class LoginPageState extends State<LoginPage> {
       if (responseMessage == "Login successful!") {
         try {
           await stompService.connect();
-          debugPrint("✅ STOMP connected.");
-        } catch (stompError, stack) {
-          debugPrint("❌ STOMP connection error: $stompError");
-          debugPrint("📍 Stacktrace: $stack");
+        } catch (stompError) {
+          debugPrint("STOMP connection error: $stompError");
         }
 
         Navigator.pushReplacement(
@@ -57,9 +55,8 @@ class LoginPageState extends State<LoginPage> {
           MaterialPageRoute(builder: (context) => const HomePage()),
         );
       }
-    } catch (e, stackTrace) {
-      debugPrint("❌ Login exception: $e");
-      debugPrint("📍 Stacktrace: $stackTrace");
+    } catch (e) {
+      debugPrint("Login exception: $e");
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
