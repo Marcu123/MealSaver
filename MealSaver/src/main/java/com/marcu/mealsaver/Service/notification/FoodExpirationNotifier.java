@@ -41,7 +41,6 @@ public class FoodExpirationNotifier {
                         "/queue/expired"
                 );
             } else if (daysLeft <= 3) {
-                // Aproape expirat
                 String message = switch ((int) daysLeft) {
                     case 0 -> food.getName() + " expires today!";
                     case 1 -> food.getName() + " expires tomorrow!";

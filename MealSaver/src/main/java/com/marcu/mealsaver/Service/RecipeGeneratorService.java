@@ -53,7 +53,6 @@ public class RecipeGeneratorService {
                 .toList();
 
         if (expiringFoods.isEmpty() && otherFoods.isEmpty()) {
-            System.out.println("No foods. Returning recipes from CSV dataset, page: " + page);
             return recipeService.getRecipes(Collections.emptyList(), Collections.emptyList(), page, size)
                     .stream()
                     .map(r -> new RecipeResponseDTO(
@@ -65,8 +64,6 @@ public class RecipeGeneratorService {
                     ))
                     .toList();
         }
-
-        System.out.println("Generating AI recipes for page: " + page);
 
         String prompt;
         if (page == 0) {
@@ -111,7 +108,7 @@ public class RecipeGeneratorService {
                   "optionalIngredientsToBuy": ["optional1", "optional2", "..."]
                 }
                 
-                ⚠️ Output only valid JSON (an array with 5 recipe objects). No explanations. No markdown. No text outside the array.
+                Output only valid JSON (an array with 5 recipe objects). No explanations. No markdown. No text outside the array.
                 """.formatted(String.join(", ", expiring), String.join(", ", other));
     }
 
@@ -133,7 +130,7 @@ public class RecipeGeneratorService {
               "optionalIngredientsToBuy": ["optional1", "optional2", "..."]
             }
 
-            ⚠️ Output only valid JSON (no explanations, no extra text).
+            Output only valid JSON (no explanations, no extra text).
 
             This is continuation page %d.
             """.formatted(String.join(", ", expiring), String.join(", ", other), page);

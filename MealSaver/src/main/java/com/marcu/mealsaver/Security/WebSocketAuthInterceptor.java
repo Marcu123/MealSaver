@@ -38,7 +38,6 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             if (token != null && jwtUtil.isTokenValid(token, jwtUtil.extractUsername(token))) {
                 String username = jwtUtil.extractUsername(token);
                 attributes.put("user", new StompPrincipal(username));
-                System.out.println("👉 Connected user: " + username);
                 return true;
             }
         }

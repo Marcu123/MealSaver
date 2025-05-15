@@ -1,6 +1,5 @@
 package com.marcu.mealsaver.Dto;
 
-import com.marcu.mealsaver.Model.Food;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

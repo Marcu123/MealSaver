@@ -92,9 +92,6 @@ public class UserService {
         String activationLink = frontendBaseUrl + "/api/auth/verify?token=" + token;
         emailService.sendEmail(user.getEmail(), "Activate your MealSaver account",
                 "Welcome to MealSaver!\n\nClick the link below to activate your account:\n" + activationLink);
-
-        System.out.println("🚀 Activation link generated: " + activationLink);
-
     }
 
     public void verifyAccount(String token) {

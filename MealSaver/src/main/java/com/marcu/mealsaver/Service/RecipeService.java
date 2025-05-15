@@ -44,9 +44,6 @@ public class RecipeService {
     public List<RecipeDTO> getRecipes(List<String> ingredients, List<String> categories, int page, int size) {
         return allRecipes.stream()
                 .filter(recipe -> {
-                    // 🔍 DEBUG info
-                    System.out.println("🔎 Checking recipe: " + recipe.getTitle());
-
                     if (categories != null && !categories.isEmpty()) {
                         List<String> recipeCategories = recipe.getCategories().stream()
                                 .filter(Objects::nonNull)
@@ -65,9 +62,7 @@ public class RecipeService {
                                         )
                                 );
 
-                        System.out.println("✅ Category match result: " + allMatch);
                         if (!allMatch) {
-                            System.out.println("❌ REJECTED by category\n");
                             return false;
                         }
                     }
@@ -87,14 +82,11 @@ public class RecipeService {
                                         )
                                 );
 
-                        System.out.println("✅ Ingredient match result: " + anyMatch);
                         if (!anyMatch) {
-                            System.out.println("❌ REJECTED by ingredients\n");
                             return false;
                         }
                     }
 
-                    System.out.println("✅ ACCEPTED\n");
                     return true;
                 })
                 .skip((long) page * size)

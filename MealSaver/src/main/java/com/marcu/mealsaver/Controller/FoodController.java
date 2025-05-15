@@ -1,7 +1,6 @@
 package com.marcu.mealsaver.Controller;
 
 import com.marcu.mealsaver.Dto.FoodDTO;
-import com.marcu.mealsaver.Dto.UserDTO;
 import com.marcu.mealsaver.Service.FoodService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
