@@ -15,5 +15,6 @@ public class RecipeResponseDTO {
     private List<String> steps;
     private List<String> optionalIngredientsToBuy;
     private String imageUrl;
+    private List<String> sources;
 }
 

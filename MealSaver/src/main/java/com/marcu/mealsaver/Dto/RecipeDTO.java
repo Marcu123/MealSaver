@@ -15,4 +15,5 @@ public class RecipeDTO {
     private String instructions;
     private List<String> categories;
     private String imageName;
+    private List<String> sources;
 }

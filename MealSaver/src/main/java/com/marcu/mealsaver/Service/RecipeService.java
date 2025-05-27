@@ -33,8 +33,9 @@ public class RecipeService {
 
                 List<String> ingredients = parseAndFixList(record.get("Cleaned_Ingredients"));
                 List<String> categories = parseAndFixList(record.get("Categories"));
+                String source = "Food Ingredients and Recipe Dataset with Images";
 
-                allRecipes.add(new RecipeDTO(title, ingredients, instructions, categories, imageName));
+                allRecipes.add(new RecipeDTO(title, ingredients, instructions, categories, imageName, Collections.singletonList(source)));
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not read recipes", e);

@@ -61,6 +61,7 @@ public class RecipeGeneratorService {
                             List.of(r.getInstructions()),
                             r.getCategories(),
                             r.getImageName()
+                            , r.getSources()
                     ))
                     .toList();
         }
@@ -84,7 +85,8 @@ public class RecipeGeneratorService {
                             json.getJSONArray("ingredients").toList().stream().map(Object::toString).toList(),
                             json.getJSONArray("steps").toList().stream().map(Object::toString).toList(),
                             json.getJSONArray("optionalIngredientsToBuy").toList().stream().map(Object::toString).toList(),
-                            imageUrl
+                            imageUrl,
+                            json.getJSONArray("sources").toList().stream().map(Object::toString).toList()
                     );
                 })
                 .toList();
@@ -105,10 +107,11 @@ public class RecipeGeneratorService {
                   "title": "string",
                   "ingredients": ["ingredient1", "ingredient2", "..."],
                   "steps": ["Step 1...", "Step 2...", "..."],
-                  "optionalIngredientsToBuy": ["optional1", "optional2", "..."]
+                  "optionalIngredientsToBuy": ["optional1", "optional2", "..."],
+                  "sources": ["source1", "source2", "..."]
                 }
                 
-                Output only valid JSON (an array with 5 recipe objects). No explanations. No markdown. No text outside the array.
+                Output only valid JSON (an array with 5 recipe objects). No explanations. No markdown. No text outside the array. Every source you use must be https:// or http://.
                 """.formatted(String.join(", ", expiring), String.join(", ", other));
     }
 
@@ -127,10 +130,12 @@ public class RecipeGeneratorService {
               "title": "string",
               "ingredients": ["ingredient1", "ingredient2", "..."],
               "steps": ["Step 1...", "Step 2...", "..."],
-              "optionalIngredientsToBuy": ["optional1", "optional2", "..."]
+              "optionalIngredientsToBuy": ["optional1", "optional2", "..."],
+              "sources": ["source1", "source2", "..."]
+
             }
 
-            Output only valid JSON (no explanations, no extra text).
+            Output only valid JSON (no explanations, no extra text). Every source you use must be https:// or http://
 
             This is continuation page %d.
             """.formatted(String.join(", ", expiring), String.join(", ", other), page);
