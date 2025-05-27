@@ -4,6 +4,7 @@ class RecipeDTO {
   final String instructions;
   final List<String> categories;
   final String imageName;
+  final List<String> sources;
 
   RecipeDTO({
     required this.title,
@@ -11,6 +12,7 @@ class RecipeDTO {
     required this.instructions,
     required this.categories,
     required this.imageName,
+    required this.sources,
   });
 
   factory RecipeDTO.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class RecipeDTO {
       instructions: json['instructions'],
       categories: List<String>.from(json['categories']),
       imageName: json['imageName'],
+      sources: List<String>.from(json['sources'] ?? []),
     );
   }
 }

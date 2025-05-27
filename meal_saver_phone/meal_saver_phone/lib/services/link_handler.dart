@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
 import 'package:http/http.dart' as http;
-import 'package:meal_saver_phone/views/login_page.dart';
 import 'package:meal_saver_phone/views/reset_password.dart';
 import 'package:meal_saver_phone/widgets/login_page_with_snack_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,7 +26,6 @@ class _LinkHandlerState extends State<LinkHandler> {
     _appLinks.uriLinkStream.listen((Uri? uri) async {
       if (uri == null) return;
 
-      print("📨 Received deep link: $uri");
       final token = uri.queryParameters['token'];
 
       if (uri.path == "/api/auth/verify" && token != null) {
@@ -48,7 +46,7 @@ class _LinkHandlerState extends State<LinkHandler> {
               MaterialPageRoute(
                 builder:
                     (newContext) => LoginPageWithSnackBar(
-                      message: "✅ Account activated! You can now log in.",
+                      message: "Account activated! You can now log in.",
                     ),
               ),
               (_) => false,

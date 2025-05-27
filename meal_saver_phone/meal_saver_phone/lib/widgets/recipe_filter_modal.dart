@@ -218,18 +218,13 @@ Future<List<RecipeDTO>> fetchFilteredRecipes(
   }
 
   final uri = Uri.http("10.0.2.2:8082", "/api/recipes/filter", params);
-  print("📡 Sending request to: $uri");
-
   final response = await http.get(uri);
   final decoded = utf8.decode(response.bodyBytes);
-  print("📥 Response status: ${response.statusCode}");
 
   if (response.statusCode == 200) {
     final data = jsonDecode(decoded);
-    print("📦 Data received: ${data.length} items");
     return List<RecipeDTO>.from(data.map((item) => RecipeDTO.fromJson(item)));
   } else {
-    print("❌ Failed to fetch recipes: ${response.body}");
     return [];
   }
 }

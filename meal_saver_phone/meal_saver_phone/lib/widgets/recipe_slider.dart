@@ -18,10 +18,15 @@ class RecipeSlider extends StatelessWidget {
 
   void _showRecipeDetails(BuildContext context, RecipeDTO recipe) {
     final unescape = HtmlUnescape();
+    final String? rawImage = recipe.imageName;
+    final bool hasValidImage = rawImage != null && rawImage.trim().isNotEmpty;
+
     final String imageUrl =
-        recipe.imageName.startsWith('http')
-            ? "http://10.0.2.2:8082/proxy/image?url=${Uri.encodeComponent(recipe.imageName)}"
-            : "http://10.0.2.2:8082/images/${recipe.imageName}";
+        hasValidImage
+            ? (rawImage.startsWith('http')
+                ? "http://10.0.2.2:8082/proxy/image?url=${Uri.encodeComponent(rawImage)}"
+                : "http://10.0.2.2:8082/images/$rawImage")
+            : "";
 
     showDialog(
       context: context,
@@ -39,16 +44,21 @@ class RecipeSlider extends StatelessWidget {
                   SizedBox(
                     height: 200,
                     width: double.infinity,
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder:
-                          (context, error, stackTrace) => const Icon(
-                            Icons.broken_image,
-                            color: Colors.white70,
-                            size: 100,
-                          ),
-                    ),
+                    child:
+                        hasValidImage
+                            ? Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) => Image.asset(
+                                    'assets/images/no_food.png',
+                                    fit: BoxFit.contain,
+                                  ),
+                            )
+                            : Image.asset(
+                              'assets/images/no_food.png',
+                              fit: BoxFit.contain,
+                            ),
                   ),
                   const SizedBox(height: 10),
                   const Text(
@@ -58,12 +68,14 @@ class RecipeSlider extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  ...recipe.cleanedIngredients.map(
-                    (i) => Text(
-                      "- ${unescape.convert(i)}",
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
+                  ...recipe.cleanedIngredients
+                      .where((i) => i.trim().isNotEmpty)
+                      .map(
+                        (i) => Text(
+                          "- ${unescape.convert(i)}",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
                   const SizedBox(height: 10),
                   const Text(
                     "Instructions:",
@@ -106,6 +118,22 @@ class RecipeSlider extends StatelessWidget {
                                 ),
                               )
                               .toList(),
+                    ),
+                  ],
+                  if (recipe.sources.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    const Text(
+                      "Sources:",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    ...recipe.sources.map(
+                      (s) => Text(
+                        s,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
                     ),
                   ],
                 ],
@@ -163,10 +191,16 @@ class RecipeSlider extends StatelessWidget {
               }
 
               final recipe = recipes[index];
+              final String? rawImage = recipe.imageName;
+              final bool hasValidImage =
+                  rawImage != null && rawImage.trim().isNotEmpty;
+
               final String imageUrl =
-                  recipe.imageName.startsWith('http')
-                      ? "http://10.0.2.2:8082/proxy/image?url=${Uri.encodeComponent(recipe.imageName)}"
-                      : "http://10.0.2.2:8082/images/${recipe.imageName}";
+                  hasValidImage
+                      ? (rawImage.startsWith('http')
+                          ? "http://10.0.2.2:8082/proxy/image?url=${Uri.encodeComponent(rawImage)}"
+                          : "http://10.0.2.2:8082/images/$rawImage")
+                      : "";
 
               return GestureDetector(
                 onTap: () => _showRecipeDetails(context, recipe),
@@ -186,28 +220,37 @@ class RecipeSlider extends StatelessWidget {
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(16),
                           ),
-                          child: Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            errorBuilder:
-                                (context, error, stackTrace) => const Icon(
-                                  Icons.broken_image,
-                                  color: Colors.white70,
-                                ),
-                          ),
+                          child:
+                              hasValidImage
+                                  ? Image.network(
+                                    imageUrl,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Image.asset(
+                                              'assets/images/no_food.png',
+                                              fit: BoxFit.contain,
+                                            ),
+                                  )
+                                  : Image.asset(
+                                    'assets/images/no_food.png',
+                                    fit: BoxFit.contain,
+                                  ),
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(12.0),
+                        padding: const EdgeInsets.all(8.0),
                         child: Text(
                           unescape.convert(recipe.title),
-                          textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 16,
                             color: Colors.white,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ],
