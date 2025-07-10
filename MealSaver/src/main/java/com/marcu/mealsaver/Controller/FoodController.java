@@ -68,6 +68,11 @@ public class FoodController {
         return foodService.getExpired(user.getUsername());
     }
 
+    @GetMapping("/by-user/{username}")
+    public ResponseEntity<Iterable<FoodDTO>> getFoodsByUser(@PathVariable String username) {
+        return ResponseEntity.ok(foodService.getFoodsByUser(username));
+    }
+
 
 
 }

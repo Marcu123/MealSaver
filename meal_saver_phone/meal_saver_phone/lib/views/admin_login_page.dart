@@ -1,29 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:meal_saver_phone/services/api_service.dart';
-import 'package:meal_saver_phone/services/stomp_service.dart';
-import 'package:meal_saver_phone/views/admin_login_page.dart';
-import 'package:meal_saver_phone/views/forgot_password.dart';
+import 'package:meal_saver_phone/views/admin_page.dart';
 import 'package:meal_saver_phone/views/home_page.dart';
-import 'package:meal_saver_phone/views/register_page.dart';
-import '../widgets/input_field.dart';
+import 'package:meal_saver_phone/views/login_page.dart';
 import '../widgets/custom_button1.dart';
+import '../widgets/input_field.dart';
 
-final StompService stompService = StompService();
-
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class AdminLoginPage extends StatefulWidget {
+  const AdminLoginPage({super.key});
 
   @override
-  LoginPageState createState() => LoginPageState();
+  State<AdminLoginPage> createState() => _AdminLoginPageState();
 }
 
-class LoginPageState extends State<LoginPage> {
+class _AdminLoginPageState extends State<AdminLoginPage> {
   final ApiService apiService = ApiService();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
 
-  Future<void> login() async {
+  Future<void> loginAdmin() async {
     if (isLoading) return;
 
     setState(() {
@@ -31,7 +27,7 @@ class LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final responseMessage = await apiService.loginUser(
+      final responseMessage = await apiService.loginAdmin(
         username: usernameController.text,
         password: passwordController.text,
       );
@@ -42,20 +38,14 @@ class LoginPageState extends State<LoginPage> {
         context,
       ).showSnackBar(SnackBar(content: Text(responseMessage)));
 
-      if (responseMessage == "Login successful!") {
-        try {
-          await stompService.connect();
-        } catch (stompError) {
-          debugPrint("STOMP connection error: $stompError");
-        }
-
+      if (responseMessage == "Admin login successful!") {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(builder: (context) => const AdminPage()),
         );
       }
     } catch (e) {
-      debugPrint("Login exception: $e");
+      debugPrint("Admin login exception: $e");
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -87,7 +77,7 @@ class LoginPageState extends State<LoginPage> {
               Image.asset('assets/images/logo.png', width: 150, height: 150),
               const SizedBox(height: 10),
               const Text(
-                'MealSaver',
+                'MealSaver Admin',
                 style: TextStyle(
                   fontSize: 35,
                   color: Colors.white,
@@ -95,50 +85,25 @@ class LoginPageState extends State<LoginPage> {
                 ),
               ),
               const Text(
-                'Hi there! Welcome back to MealSaver',
+                'Admin login portal',
                 style: TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 35),
               InputField(
                 controller: usernameController,
-                labelText: 'Enter your username',
+                labelText: 'Enter admin username',
                 isPassword: false,
               ),
               const SizedBox(height: 15),
               InputField(
                 controller: passwordController,
-                labelText: 'Enter your password',
+                labelText: 'Enter admin password',
                 isPassword: true,
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ForgotPasswordPage(),
-                    ),
-                  );
-                },
-                style: ButtonStyle(
-                  foregroundColor: WidgetStateProperty.resolveWith<Color>((
-                    Set<WidgetState> states,
-                  ) {
-                    if (states.contains(WidgetState.pressed) ||
-                        states.contains(WidgetState.hovered)) {
-                      return Colors.white;
-                    }
-                    return const Color.fromARGB(255, 130, 24, 230);
-                  }),
-                ),
-                child: const Text(
-                  'Forgot password!',
-                  style: TextStyle(fontSize: 14.0),
-                ),
               ),
               const SizedBox(height: 20),
               CustomButton1(
-                text: 'Login',
-                onPressed: isLoading ? null : login,
+                text: 'Login as Admin',
+                onPressed: isLoading ? null : loginAdmin,
                 child:
                     isLoading
                         ? const SizedBox(
@@ -158,22 +123,22 @@ class LoginPageState extends State<LoginPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Don\'t have an account?',
+                    'Not an admin?',
                     style: TextStyle(color: Colors.white, fontSize: 14.0),
                   ),
                   const SizedBox(width: 8),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const RegisterPage(),
+                          builder: (context) => const LoginPage(),
                         ),
                       );
                     },
                     style: ButtonStyle(
                       foregroundColor: WidgetStateProperty.resolveWith<Color>((
-                        Set<WidgetState> states,
+                        states,
                       ) {
                         if (states.contains(WidgetState.pressed) ||
                             states.contains(WidgetState.hovered)) {
@@ -183,43 +148,7 @@ class LoginPageState extends State<LoginPage> {
                       }),
                     ),
                     child: const Text(
-                      'Sign up',
-                      style: TextStyle(fontSize: 14.0),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 1),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Are you an admin?',
-                    style: TextStyle(color: Colors.white, fontSize: 14.0),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AdminLoginPage(),
-                        ),
-                      );
-                    },
-                    style: ButtonStyle(
-                      foregroundColor: WidgetStateProperty.resolveWith<Color>((
-                        Set<WidgetState> states,
-                      ) {
-                        if (states.contains(WidgetState.pressed) ||
-                            states.contains(WidgetState.hovered)) {
-                          return Colors.white;
-                        }
-                        return const Color.fromARGB(255, 130, 24, 230);
-                      }),
-                    ),
-                    child: const Text(
-                      'Login as admin',
+                      'Go to user login',
                       style: TextStyle(fontSize: 14.0),
                     ),
                   ),

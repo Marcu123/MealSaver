@@ -100,6 +100,58 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  void _showChangePasswordModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color.fromARGB(255, 30, 30, 30),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: 20,
+            left: 20,
+            right: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Change Password",
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                obscureText: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: "New Password",
+                  labelStyle: TextStyle(color: Colors.white70),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Password changed successfully'),
+                    ),
+                  );
+                },
+                child: const Text("Change Password"),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showUploadModal() {
     final videoUrlController = TextEditingController();
     final descriptionController = TextEditingController();
@@ -179,8 +231,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     decoration: const InputDecoration(
                       labelText: "Description",
                       labelStyle: TextStyle(color: Colors.white70),
+                      alignLabelWithHint: true,
                     ),
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    minLines: 3,
                   ),
+
                   TextField(
                     controller: tagsController,
                     style: const TextStyle(color: Colors.white),
@@ -284,7 +341,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: 15),
                   CustomButton1(
                     text: "Change Password",
-                    onPressed: _showUploadModal,
+                    onPressed: _showChangePasswordModal,
                   ),
                   const SizedBox(height: 15),
                   CustomButton1(text: "Log Out", onPressed: _logout),

@@ -32,6 +32,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       });
   }
 
+  String _truncateText(String text, {int limit = 10}) {
+    if (text.length <= limit) return text;
+    return '${text.substring(0, limit).trim()}...';
+  }
+
   Future<void> _loadUser() async {
     final user = await ApiService().getCurrentUser();
     if (!mounted) return;
@@ -145,7 +150,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          widget.videoData['description'] ?? '',
+                          _truncateText(widget.videoData['description'] ?? ''),
                           style: const TextStyle(color: Colors.white70),
                         ),
                         const SizedBox(height: 10),

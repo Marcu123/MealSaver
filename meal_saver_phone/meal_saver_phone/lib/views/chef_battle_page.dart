@@ -118,6 +118,11 @@ class _ChefBattlePageState extends State<ChefBattlePage>
       });
   }
 
+  String _truncate(String text, [int limit = 12]) {
+    if (text.length <= limit) return text;
+    return '${text.substring(0, limit).trim()}...';
+  }
+
   void _onPageChanged(int index) {
     if (index >= videos.length) return;
     setState(() => _currentIndex = index);
@@ -227,12 +232,13 @@ class _ChefBattlePageState extends State<ChefBattlePage>
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              video.description,
+                              _truncate(video.description),
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 14,
                               ),
                             ),
+
                             const SizedBox(height: 10),
                             Wrap(
                               spacing: 6,

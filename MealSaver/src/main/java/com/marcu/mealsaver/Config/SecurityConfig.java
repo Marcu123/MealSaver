@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/proxy/image","/api/auth/**", "/api/users/upload-profile-image",  "/api/auth/ws/test","/.well-known/**","/api/recipes/**",
-                                "/images/**","/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**","/ws/**").permitAll()
+                                "/images/**","/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**","/ws/**", "/api/admin/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)

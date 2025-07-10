@@ -122,7 +122,7 @@ public class RecipeVideoService {
         RecipeVideo video = videoRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Video not found"));
 
-        if (!video.getUser().getUsername().equals(username)) {
+        if (!video.getUser().getUsername().equals(username) && !username.equals("admin")) {
             throw new SecurityException("Unauthorized to delete this video.");
         }
 

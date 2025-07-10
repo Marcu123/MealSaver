@@ -61,6 +61,15 @@ public class User{
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
+    @Column(name = "is_admin", nullable = false)
+    private Boolean admin = false;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications;
 
 
+
+    public Boolean isAdmin() {
+        return this.admin;
+    }
 }

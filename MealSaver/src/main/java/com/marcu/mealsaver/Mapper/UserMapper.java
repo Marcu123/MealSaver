@@ -33,6 +33,7 @@ public class UserMapper {
                 .map(foodMapper::toDTO)
                 .collect(Collectors.toList())
                 : null);
+        userDTO.setAdmin(user.isAdmin());
         return userDTO;
     }
 
@@ -51,6 +52,7 @@ public class UserMapper {
                 .map(foodMapper::toEntity)
                 .collect(Collectors.toList())
                 : null);
+        user.setAdmin(userDTO.isAdmin());
         return user;
     }
 }

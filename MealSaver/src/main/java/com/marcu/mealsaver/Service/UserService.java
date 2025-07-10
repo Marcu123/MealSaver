@@ -9,9 +9,11 @@ import com.marcu.mealsaver.Exception.UsernameAlreadyExistsException;
 import com.marcu.mealsaver.Mapper.UserMapper;
 import com.marcu.mealsaver.Model.User;
 import com.marcu.mealsaver.Model.VerificationToken;
+import com.marcu.mealsaver.Repository.NotificationRepository;
 import com.marcu.mealsaver.Repository.UserRepository;
 import com.marcu.mealsaver.Repository.VerificationTokenRepository;
 import com.marcu.mealsaver.Security.JwtUtil;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,6 +40,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final VerificationTokenRepository verificationTokenRepository;
     private final EmailService emailService;
+    private final NotificationRepository notificationRepository;
 
     @Value("${app.frontend.base-url}")
     private String frontendBaseUrl;
@@ -50,7 +53,8 @@ public class UserService {
                        AuthenticationManager authenticationManager,
                        PasswordEncoder passwordEncoder,
                        VerificationTokenRepository verificationTokenRepository,
-                       EmailService emailService) {
+                       EmailService emailService,
+                       NotificationRepository notificationRepository) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.jwtUtil = jwtUtil;
@@ -58,6 +62,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
         this.verificationTokenRepository = verificationTokenRepository;
         this.emailService = emailService;
+        this.notificationRepository = notificationRepository;
     }
 
     public UserDTO getUserByUsername(String username) {
@@ -80,6 +85,7 @@ public class UserService {
         User user = userMapper.toEntity(userDTO);
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setEnabled(false);
+        user.setAdmin(false);
 
         User savedUser = userRepository.save(user);
 
@@ -142,10 +148,11 @@ public class UserService {
     }
 
 
-
+    @Transactional
     public void deleteUser(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found: " + username));
+        notificationRepository.deleteAllByUserId((user.getId()));
         userRepository.delete(user);
     }
 
@@ -224,4 +231,10 @@ public class UserService {
     }
 
 
+    public List<UserDTO> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(userMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 }

@@ -32,7 +32,7 @@ class _LinkHandlerState extends State<LinkHandler> {
         try {
           final response = await http.get(
             Uri.parse(
-              "https://0075-194-176-167-117.ngrok-free.app/api/auth/verify?token=$token",
+              "https://4d76-84-117-163-94.ngrok-free.app/api/auth/verify?token=$token",
             ),
           );
 

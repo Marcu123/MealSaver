@@ -112,4 +112,11 @@ public class FoodService {
         cal.set(Calendar.MILLISECOND, 0);
         return cal.getTime();
     }
+
+    public Iterable<FoodDTO> getFoodsByUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + username));
+
+        return foodMapper.toDTOs(foodRepository.findAllByUser(user));
+    }
 }

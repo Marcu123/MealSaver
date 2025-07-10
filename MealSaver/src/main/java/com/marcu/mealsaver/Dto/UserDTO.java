@@ -1,5 +1,6 @@
 package com.marcu.mealsaver.Dto;
 
+import com.marcu.mealsaver.Model.Notification;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -40,5 +41,15 @@ public class UserDTO {
     private List<FoodDTO> foods;
 
     private String profileImageUrl;
+
+    private Boolean admin=false;
+
+    private List<Notification> notifications;
+
+
+    public Boolean isAdmin() {
+        return this.admin;
+    }
+
 
 }

@@ -5,7 +5,6 @@ import 'package:meal_saver_phone/models/ai_recipe_dto.dart';
 import 'package:meal_saver_phone/models/food_dto.dart';
 import 'package:meal_saver_phone/models/notification_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:meal_saver_phone/models/recipe_dto.dart';
 
 class ApiService {
   static const String baseUrl = "http://10.0.2.2:8082/api";
@@ -16,6 +15,7 @@ class ApiService {
     required String email,
     required String username,
     required String password,
+    required bool admin,
   }) async {
     final url = Uri.parse("$baseUrl/auth/register");
 
@@ -27,6 +27,7 @@ class ApiService {
       "password": password,
       "createdAt": DateTime.now().toIso8601String(),
       "updatedAt": DateTime.now().toIso8601String(),
+      "admin": admin,
     });
 
     try {
@@ -820,6 +821,215 @@ class ApiService {
       return List<Map<String, dynamic>>.from(jsonDecode(response.body));
     } else {
       throw Exception("Video tag search failed: ${response.statusCode}");
+    }
+  }
+
+  Future<String> loginAdmin({
+    required String username,
+    required String password,
+  }) async {
+    final url = Uri.parse("$baseUrl/admin/login");
+    final headers = {'Accept': '*/*', 'Content-Type': 'application/json'};
+    final body = jsonEncode({"username": username, "password": password});
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        final String token = responseData['token'];
+
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', token);
+
+        return "Admin login successful!";
+      } else {
+        try {
+          final responseData = jsonDecode(response.body);
+
+          print("Admin login error: ${responseData['message']}");
+          return responseData['message'] ?? "An error occurred!";
+        } catch (_) {
+          return response.body;
+        }
+      }
+    } catch (e) {
+      return "Connection error! Verify your internet connection!";
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getAllUsers() async {
+    final url = Uri.parse("$baseUrl/admin/all");
+    final headers = {'Accept': '*/*', 'Content-Type': 'application/json'};
+
+    try {
+      final response = await http.get(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> getUserByUsername(String username) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse("$baseUrl/users/$username");
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("User not found: ${response.statusCode}");
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getFoodsByUser(String username) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse("$baseUrl/admin/by-user/$username/foods");
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    } else {
+      throw Exception("Failed to fetch foods: ${response.statusCode}");
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getVideosByUser(String username) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse("$baseUrl/admin/by-user/$username/videos");
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    } else {
+      throw Exception("Failed to fetch videos: ${response.statusCode}");
+    }
+  }
+
+  Future<void> deleteUser(String username) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    print("$token");
+
+    final url = Uri.parse('$baseUrl/users/$username');
+
+    final response = await http.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete user: ${response.statusCode}');
+    }
+  }
+
+  Future<void> updateFoodByName(
+    String name,
+    Map<String, dynamic> updatedData,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse('$baseUrl/foods/$name');
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(updatedData),
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception("Failed to update food: ${response.body}");
+    }
+  }
+
+  Future<void> updateVideoById(int id, Map<String, dynamic> updatedData) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse('$baseUrl/recipe-videos/$id');
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(updatedData),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to update video: ${response.body}");
+    }
+  }
+
+  Future<void> deleteFoodById(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse('$baseUrl/foods/$id');
+    final response = await http.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete food: ${response.statusCode}');
+    }
+  }
+
+  Future<void> deleteVideoById(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/$id');
+    final response = await http.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete video: ${response.statusCode}');
     }
   }
 }

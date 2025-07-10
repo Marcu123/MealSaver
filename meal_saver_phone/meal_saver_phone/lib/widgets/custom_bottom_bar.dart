@@ -52,7 +52,7 @@ class CustomBottomNav extends StatelessWidget {
         ),
         BottomNavigationBarItem(icon: Icon(MdiIcons.fridge), label: 'My Foods'),
         BottomNavigationBarItem(
-          icon: Icon(MdiIcons.fromString('food-hot-dog')),
+          icon: Icon(MdiIcons.fromString('chef-hat')),
           label: 'Chef Battle',
         ),
       ],
