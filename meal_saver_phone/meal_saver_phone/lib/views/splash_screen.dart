@@ -36,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
         try {
           final response = await http.get(
             Uri.parse(
-              "https://4d76-84-117-163-94.ngrok-free.app/api/auth/verify?token=$token",
+              "https://mealsaver-production.up.railway.app/api/auth/verify?token=$token",
             ),
           );
 
@@ -126,7 +126,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<bool> _validateToken(String token) async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8082/api/users/me'),
+        Uri.parse('https://mealsaver-production.up.railway.app/api/users/me'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

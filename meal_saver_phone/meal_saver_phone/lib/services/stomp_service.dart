@@ -17,7 +17,7 @@ class StompService {
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
-    final url = 'ws://10.0.2.2:8082/ws?token=$token';
+    final url = 'ws://mealsaver-production.up.railway.app/ws?token=$token';
 
     _stompClient = StompClient(
       config: StompConfig(

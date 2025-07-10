@@ -7,7 +7,8 @@ import 'package:meal_saver_phone/models/notification_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = "http://10.0.2.2:8082/api";
+  static const String baseUrl =
+      "https://mealsaver-production.up.railway.app/api";
 
   Future<String> registerUser({
     required String firstName,
@@ -355,7 +356,7 @@ class ApiService {
     }
 
     final uri = Uri.parse(
-      "http://10.0.2.2:8082/api/ai/recipes?page=$page&size=$size",
+      "https://mealsaver-production.up.railway.app/api/ai/recipes?page=$page&size=$size",
     );
     final response = await http.get(
       uri,
@@ -524,7 +525,8 @@ class ApiService {
   }
 
   Future<void> sendImageUrlToBackend(String username, String url) async {
-    final backendUrl = 'http://10.0.2.2:8082/api/users/upload-profile-image';
+    final backendUrl =
+        'https://mealsaver-production.up.railway.app/api/users/upload-profile-image';
 
     final response = await http.put(
       Uri.parse(backendUrl),
@@ -542,7 +544,7 @@ class ApiService {
     if (token == null) throw Exception("Not authenticated");
 
     final uri = Uri.parse(
-      "http://10.0.2.2:8082/api/chef-battle/random?count=$count",
+      "https://mealsaver-production.up.railway.app/api/chef-battle/random?count=$count",
     );
     final response = await http.get(
       uri,
@@ -564,7 +566,9 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
-    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/my-videos');
+    final url = Uri.parse(
+      'https://mealsaver-production.up.railway.app/api/chef-battle/my-videos',
+    );
 
     final response = await http.get(
       url,
@@ -592,7 +596,9 @@ class ApiService {
 
     if (token == null) return "Not authenticated";
 
-    final url = Uri.parse("http://10.0.2.2:8082/api/chef-battle/upload");
+    final url = Uri.parse(
+      "https://mealsaver-production.up.railway.app/api/chef-battle/upload",
+    );
 
     final body = {
       "videoUrl": videoUrl,
@@ -627,7 +633,9 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
-    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/$id/like');
+    final url = Uri.parse(
+      'https://mealsaver-production.up.railway.app/api/chef-battle/$id/like',
+    );
 
     final response = await http.post(
       url,
@@ -682,7 +690,9 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
-    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/$id');
+    final url = Uri.parse(
+      'https://mealsaver-production.up.railway.app/api/chef-battle/$id',
+    );
 
     final response = await http.put(
       url,
@@ -704,7 +714,9 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
-    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/$id');
+    final url = Uri.parse(
+      'https://mealsaver-production.up.railway.app/api/chef-battle/$id',
+    );
 
     final response = await http.delete(
       url,
@@ -725,7 +737,9 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
-    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/$id/unlike');
+    final url = Uri.parse(
+      'https://mealsaver-production.up.railway.app/api/chef-battle/$id/unlike',
+    );
 
     final response = await http.post(
       url,
@@ -744,7 +758,9 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
-    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/liked');
+    final url = Uri.parse(
+      'https://mealsaver-production.up.railway.app/api/chef-battle/liked',
+    );
 
     final response = await http.get(
       url,
@@ -1019,7 +1035,9 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
-    final url = Uri.parse('http://10.0.2.2:8082/api/chef-battle/$id');
+    final url = Uri.parse(
+      'https://mealsaver-production.up.railway.app/api/chef-battle/$id',
+    );
     final response = await http.delete(
       url,
       headers: {

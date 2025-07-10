@@ -34,7 +34,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="4d76-84-117-163-94.ngrok-free.app" />
+                <data android:scheme="https" android:host="mealsaver-production.up.railway.app" />
             </intent-filter>
 
 
